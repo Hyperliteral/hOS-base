@@ -1,0 +1,7 @@
+*.o
+*.a
+
+# NOTE TO SELF
+# When adding stuff here DO NOT FORGET "make format"
+core/acpi/uacpi/
+include/uacpi/

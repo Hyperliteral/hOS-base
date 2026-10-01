@@ -1,0 +1,26 @@
+*
+!.gitignore
+!lorem.zip
+!fonts/README.txt
+!files/untitled.txt
+!files/code/fr.asm
+!files/code/fr.c
+!files/lorem.txt
+!files/hahaverylongname.txt
+!files/ab.txt
+!*/**/.*shrc # exclude any shell configuration let it be zsh, bash, or any sh.
+!usr/README.txt
+!usr/include/*.h
+!etc/hosts
+!etc/passwd
+!etc/inputrc
+!etc/group
+!etc/ld-musl-x86_64.path
+!etc/profile
+!etc/resolv.conf
+!boot/limine/limine.conf
+
+!etc
+!etc/X11
+!etc/X11/xorg.conf.d
+!etc/X11/xorg.conf.d/69-cavos.conf

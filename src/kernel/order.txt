@@ -1,0 +1,4 @@
+__TEXT:__text
+__TEXT:__rodata
+__DATA:__data
+__DATA:__bss
