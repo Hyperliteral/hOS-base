@@ -5,6 +5,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/mount.h>
 
 // /etc/modules is a plain newline-separated list of kernel modules to load at
 // boot, e.g.:
@@ -25,6 +26,21 @@ static char *trim(char *s) {
                        s[len - 1] == '\r' || s[len - 1] == '\n'))
         s[--len] = '\0';
     return s;
+}
+
+static void mountVirtualFilesystems(void) {
+    // Mount pseudo-filesystems that were shifted out of the kernel
+    if (mount("proc", "/proc", "proc", MS_NOSUID | MS_NOEXEC | MS_NODEV, NULL) == 0) {
+        printf("[initd] Mounted /proc successfully\n");
+    } else {
+        perror("[initd] Failed to mount /proc");
+    }
+
+    if (mount("sysfs", "/sys", "sysfs", MS_NOSUID | MS_NOEXEC | MS_NODEV, NULL) == 0) {
+        printf("[initd] Mounted /sys successfully\n");
+    } else {
+        perror("[initd] Failed to mount /sys");
+    }
 }
 
 static void loadModules(void) {
@@ -57,7 +73,10 @@ int main(int argc, char *argv[]) {
     (void)argc;
     (void)argv;
 
-    printf("[initd] Starting init daemon (PID 1)...\n");
+    printf("[initd] starting...\n");
+
+    // Mount core virtual filesystems early in user-space
+    mountVirtualFilesystems();
 
     // Load the modules requested in /etc/modules (enable with `initd-sys enable <mod>`)
     loadModules();

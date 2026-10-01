@@ -72,19 +72,17 @@ void _start(void) {
   fsMount("/dev/", CONNECTOR_DEV, 0, 0); // mouse & kb need it
   initiateKb();
   initiateMouse();
-  // any filesystem operations depend on currentTask
+  
+  // Core kernel subsystems remain here
   initiateTasks();
   initiateKernelThreads();
   initiateNetworking();
   initiatePCI();
   initiateLinuxKPI();
+  
+  // Keep root and boot mounts so the kernel can find and execute /usr/bin/initd
   fsMount("/", CONNECTOR_AHCI, 0, 1);
   fsMount("/boot/", CONNECTOR_AHCI, 0, 0);
-  fsMount("/sys/", CONNECTOR_SYS, 0, 0);
-  fsMount("/proc/", CONNECTOR_PROC, 0, 0);
-
-  // just in case there's another font preference
-  psfLoadFromFile(DEFAULT_FONT_PATH);
 
   initiateSyscallInst();
   initiateSyscalls();
@@ -96,12 +94,9 @@ void _start(void) {
   if (!systemDiskInit)
     printf("[warning] System disk has not been detected!\n");
 
-  fsMount("/", CONNECTOR_AHCI, 0, 1);
-  fsMount("/boot/", CONNECTOR_AHCI, 0, 0);
-
   debugf("[kernel] Spawning init system (/usr/bin/initd)...\n");
   run("/usr/bin/initd", true, 0, 0);
 
   // if init exits, panic because PID 1 may not die
   panic();
-}
+} 

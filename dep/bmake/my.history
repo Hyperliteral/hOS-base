@@ -1,0 +1,5 @@
+.Nm
+is derived from NetBSD
+.Xr make 1 .
+It uses autoconf to facilitate portability to other platforms.
+.Pp

@@ -1,6 +1,8 @@
-COMPILER = ~/opt/cross/bin/x86_64-cavos-gcc
-SYSROOT = $(CURDIR)/../../../target
-CFLAGS = -std=c17 -pedantic-errors -Wall -Wextra -static --sysroot=$(SYSROOT)
+COMPILER = clang
+SYSROOT = $(.CURDIR)/../../../target
+CFLAGS = -std=c17 -pedantic-errors -Wall -Wextra -static \
+         --target=x86_64-unknown-elf \
+         --sysroot=$(SYSROOT)
 OUTPUT = initd
 TARGET = ../../../target/usr/bin/
 

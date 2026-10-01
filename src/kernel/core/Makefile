@@ -2,11 +2,12 @@ COMPILER = clang
 ASSEMBLER = nasm
 AR = llvm-ar
 
-# Updated target to standard 64-bit ELF
+TOPDIR ?= ${.CURDIR}/../../..
+
 CFLAGS = --target=x86_64-elf -m64 -g -c -ffreestanding -Wall -Werror -fcommon \
     -I../include/ \
     -I../services/net/lwip/include/ \
-    -isystem ../../../target/usr/include \
+    -isystem ${TOPDIR}/target/usr/include \
     -fno-pie -fno-pic \
     -mcmodel=kernel \
     -mno-80387 \
@@ -20,37 +21,40 @@ CFLAGS = --target=x86_64-elf -m64 -g -c -ffreestanding -Wall -Werror -fcommon \
     -fno-omit-frame-pointer \
     -include config.h
 
-# Updated output format for NASM assembly files to ELF64
 ASFLAGS = -f elf64
 
-C_SOURCES := $(shell find . -name '*.c' ! -name "malloc.c" ! -name "printf.c" -printf "%P\n")
-ASM_SOURCES := $(shell find . -name '*.asm' -printf "%P\n")
+C_SOURCES != find . -name '*.c' ! -name malloc.c ! -name printf.c | sed 's|^\./||' | sort
+ASM_SOURCES != find . -name '*.asm' | sed 's|^\./||' | sort
 
-C_OBJS = $(patsubst %.c,%.o,$(C_SOURCES))
-ASM_OBJS = $(patsubst %.asm,%.asm.o,$(ASM_SOURCES))
+C_OBJS = ${C_SOURCES:.c=.o}
+ASM_OBJS = ${ASM_SOURCES:=.o}
 C_EXTRA_OBJS = memory/malloc.o debug/printf.o
 
 TARGET = core.a
 
-all: $(TARGET)
+.PHONY: all clean
 
-$(TARGET): $(C_OBJS) $(ASM_OBJS) $(C_EXTRA_OBJS)
-	$(AR) rcs $@ $^
+all: ${TARGET}
+
+${TARGET}: ${C_OBJS} ${ASM_OBJS} ${C_EXTRA_OBJS}
+	${AR} rcs ${.TARGET} ${.ALLSRC}
 
 memory/malloc.o: memory/malloc.c
-	$(COMPILER) $(CFLAGS) memory/malloc.c -o memory/malloc.o -DHAVE_MMAP=0 -DLACKS_TIME_H=1 -DLACKS_SYS_PARAM_H=1 -DLACKS_STRING_H=0 -Dmalloc_getpagesize=4096 -DNO_MALLOC_STATS=1 -DMORECORE_CONTIGUOUS=0 -DUSE_LOCKS=2 "-DMALLOC_FAILURE_ACTION=abort()"
+	${COMPILER} ${CFLAGS} memory/malloc.c -o memory/malloc.o -DHAVE_MMAP=0 -DLACKS_TIME_H=1 -DLACKS_SYS_PARAM_H=1 -DLACKS_STRING_H=0 -Dmalloc_getpagesize=4096 -DNO_MALLOC_STATS=1 -DMORECORE_CONTIGUOUS=0 -DUSE_LOCKS=2 "-DMALLOC_FAILURE_ACTION=abort()"
 
 debug/printf.o: debug/printf.c
-	$(COMPILER) $(CFLAGS) debug/printf.c -o debug/printf.o -DPRINTF_INCLUDE_CONFIG_H=1
+	${COMPILER} ${CFLAGS} debug/printf.c -o debug/printf.o -DPRINTF_INCLUDE_CONFIG_H=1
 
-%.o: %.c
-	$(COMPILER) $(CFLAGS) $(subst .o,.c,$@) -o $@
+.for src in ${C_SOURCES}
+${src:R}.o: ${src}
+	${COMPILER} ${CFLAGS} ${src} -o ${.TARGET}
+.endfor
 
-%.asm.o: %.asm
-	$(ASSEMBLER) $(ASFLAGS) -o $@ $(subst .asm.o,.asm,$@)
+.for src in ${ASM_SOURCES}
+${src}.o: ${src}
+	${ASSEMBLER} ${ASFLAGS} -o ${.TARGET} ${src}
+.endfor
 
 clean:
 	find . -name '*.o' -delete
-	rm -f $(TARGET)
-
-.PHONY: all clean
+	rm -f ${TARGET}

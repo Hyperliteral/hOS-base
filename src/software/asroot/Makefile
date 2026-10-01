@@ -1,19 +1,23 @@
-COMPILER = ~/opt/cross/bin/x86_64-cavos-gcc
-SYSROOT = $(CURDIR)/../../../target
-CFLAGS = -std=c17 -pedantic-errors -Wall -Wextra -static --sysroot=$(SYSROOT)
+COMPILER = clang
+TOPDIR ?= ${.CURDIR}/../../..
+SYSROOT = ${TOPDIR}/target
+CFLAGS = -std=c17 -pedantic-errors -Wall -Wextra -static --sysroot=${SYSROOT}
 OUTPUT = asroot
-TARGET = ../../../target/usr/bin/
+DESTDIR = ${SYSROOT}/usr/bin
+
+.PHONY: all compile install clean
+.NOTPARALLEL:
 
 all: clean compile install
 
 compile:
-	$(COMPILER) main.c -o $(OUTPUT) $(CFLAGS)
+	${COMPILER} ${CFLAGS} -o ${OUTPUT} main.c
 
 install:
-	mkdir -p $(TARGET)
-	sudo cp $(OUTPUT) $(TARGET)
-	sudo chown root:root $(TARGET)$(OUTPUT)
-	sudo chmod 4755 $(TARGET)$(OUTPUT)
+	mkdir -p ${DESTDIR}
+	sudo cp ${OUTPUT} ${DESTDIR}/
+	sudo chown root:root ${DESTDIR}/${OUTPUT}
+	sudo chmod 4755 ${DESTDIR}/${OUTPUT}
 
 clean:
-	rm -f $(OUTPUT)
+	rm -f ${OUTPUT}

@@ -3,8 +3,8 @@
 #define CONFIG_H
 
 /* Executable Formats */
-#define CONFIG_EXEC_ELF 0
-#define CONFIG_MHO_EXEC 0
+#define CONFIG_EXEC_ELF 1
+#define CONFIG_MHO_EXEC 1
 
 /* Mach Features */
 #define CONFIG_MH_PORTS 1
