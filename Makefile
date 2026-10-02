@@ -5,7 +5,7 @@ TOPDIR ?= ${.CURDIR}
 
 all: disk
 
-.PHONY: disk tools clean qemu qemu_dbg vmware dev kernel musl remusl cleanmusl limine ports verifytools macho config
+.PHONY: disk tools clean qemu qemu_dbg vmware dev kernel musl remusl cleanmusl limine ports macho config
 
 config:
 	python3 tools/config/configure.py
@@ -49,7 +49,7 @@ uacpi:
 	tools/kernel/uacpi.sh
 
 # Primary (disk creation)
-disk_prepare: verifytools limine uacpi musl ports macho
+disk_prepare: limine uacpi musl ports macho
 	@for dir in ${SOFTWARE_DIRS}; do \
 		${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C "$$dir" -j1; \
 	done
@@ -64,18 +64,6 @@ disk_dirty: disk_prepare
 TOOLCHAIN_GCC_VERSION != ~/opt/cross/bin/x86_64-cavos-gcc --version 2>/dev/null || true
 GCC_CHECK_DATE = 1727727259
 GCC_ACTUAL_DATE != python3 -c "import os; print(int(os.path.getmtime(os.path.expanduser('~/opt/cross/bin/x86_64-cavos-gcc'))))" 2>/dev/null || echo 0
-
-verifytools:
-	@if [ -n "${TOOLCHAIN_GCC_VERSION}" ]; then \
-		echo "${TOOLCHAIN_GCC_VERSION}"; \
-	else \
-		printf '\033[0;31mx86_64-cavos-gcc was not found! Please use "bmake tools" to compile the toolchain!\033[0m\n'; \
-		exit 1; \
-	fi
-	@if [ ${GCC_ACTUAL_DATE} -lt ${GCC_CHECK_DATE} ]; then \
-		printf '\033[0;31mThe cavOS toolchain is outdated! Please remove the ~/opt/cross/ directory and re-build it via "bmake tools"!\033[0m\n'; \
-		exit 1; \
-	fi
 
 # Raw kernel.elf
 kernel:
