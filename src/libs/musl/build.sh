@@ -7,6 +7,7 @@ SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
 MUSL_RELEASE="musl-1.2.5"
+TARGET="x86_64-unknown-elf"
 
 cd "${SCRIPTPATH}"
 
@@ -20,23 +21,29 @@ fi
 # Ensure we have the sources!
 if ! test -d "$SCRIPTPATH/$MUSL_RELEASE"; then
     git clone "https://github.com/hyperliteral/$MUSL_RELEASE.git" "$MUSL_RELEASE"
-
-    # No patches needed!
-    # cd "$MUSL_RELEASE"
-    # patch -p1 < xyz
-    # cd ../
 fi
 
-# Ensure the cavOS toolchain's in PATH
+# Ensure the cavOS toolchain's in PATH (if any cross-utils remain)
 if [[ ":$PATH:" != *":$HOME/opt/cross/bin:"* ]]; then
     export PATH=$HOME/opt/cross/bin:$PATH
 fi
 
-# Booo! Scary!
+# Configure output directory
 export PREFIX="${SCRIPTPATH}/cavos-out"
 mkdir -p cavos-build
 cd cavos-build
-CC=x86_64-cavos-gcc ARCH=x86_64 CROSS_COMPILE=x86_64-cavos- "../$MUSL_RELEASE/configure" --target=x86_64-cavos --build=x86_64-cavos --host=x86_64-cavos --prefix="$PREFIX" --syslibdir="/lib" --enable-debug
+
+# Configure using host Clang with lld linker, target triple, and LLVM utils
+CC="clang --target=$TARGET -fuse-ld=lld" \
+AR="llvm-ar" \
+RANLIB="llvm-ranlib" \
+../$MUSL_RELEASE/configure \
+    --target="$TARGET" \
+    --host="$TARGET" \
+    --prefix="$PREFIX" \
+    --syslibdir="/lib" \
+    --enable-debug
+
 make clean
 make all -j$(nproc)
 make install
@@ -44,13 +51,6 @@ make install
 # Copy libraries (and update headers) using sudo for restricted target directory
 sudo mkdir -p "$SCRIPTPATH/../target/usr/"
 sudo cp -r "$PREFIX/lib" "$PREFIX/include" "$SCRIPTPATH/../../../target/usr/"
-
-# libc.so (dynamic deafult) fixup (just use -static man)
-# sudo mv "$SCRIPTPATH/../../../target/usr/lib/libc.so" "$SCRIPTPATH/../../../target/usr/lib/libc.1.so"
-
-# crt0 fixup (just be like linux with crt1.o, smh)
-# sudo rm -f "$SCRIPTPATH/../../../target/usr/lib/crt0.o"
-# sudo cp "$SCRIPTPATH/../../../target/usr/lib/crt1.o" "$SCRIPTPATH/../../../target/usr/lib/crt0.o"
 
 # required for proper dynamic linking
 sudo mkdir -p "$SCRIPTPATH/../../../target/lib/"

@@ -1,7 +1,8 @@
 COMPILER = clang
 ARCHIVER = llvm-ar
 TARGET_TRIPLE = x86_64-cavos
-SYSROOT = $(CURDIR)/../../../target
+SYSROOT = $(.CURDIR)/../../../target
+TRIPLE = x86_64-unknown-elf
 LIBDIR = $(SYSROOT)/lib
 
 CFLAGS = -std=c17 -pedantic-errors -ffreestanding -Wall -Wextra -fno-builtin -nostartfiles -nostdlib -c -fpic --target=$(TARGET_TRIPLE)
@@ -17,12 +18,12 @@ compile:
 	$(COMPILER) $(CFLAGS) main.c -o main.o
 	$(COMPILER) $(CFLAGS) crt0.c -o crt0.o
 	$(ARCHIVER) rcs $(LIB_OUTPUT) $(SYSTEM_OBJS)
-	cp crt0.o $(CRT_OUTPUT)
+	sudo cp crt0.o $(CRT_OUTPUT)
 
 install:
 	mkdir -p $(LIBDIR)
-	cp $(LIB_OUTPUT) $(LIBDIR)/
-	cp $(CRT_OUTPUT) $(LIBDIR)/
+	sudo cp $(LIB_OUTPUT) $(LIBDIR)/
+	sudo cp $(CRT_OUTPUT) $(LIBDIR)/
 
 clean:
 	rm -f $(SYSTEM_OBJS) $(CRT_OBJ) $(LIB_OUTPUT) $(CRT_OUTPUT)

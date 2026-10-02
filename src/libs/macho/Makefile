@@ -29,9 +29,9 @@ ${LIB_OUTPUT}: ${RUNTIME_OBJS}
 	${ARCHIVER} rcs ${.TARGET} ${.ALLSRC}
 
 install: compile
-	mkdir -p ${LIBDIR} ${INCLUDEDIR}
-	cp ${LIB_OUTPUT} ${LIBDIR}/
-	cp macho.h ${INCLUDEDIR}/
+	sudo mkdir -p ${LIBDIR} ${INCLUDEDIR}
+	sudo cp ${LIB_OUTPUT} ${LIBDIR}/
+	sudo cp macho.h ${INCLUDEDIR}/
 
 clean:
 	rm -f ${RUNTIME_OBJS} ${LIB_OUTPUT}

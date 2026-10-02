@@ -1,8 +1,9 @@
-COMPILER = ~/opt/cross/bin/x86_64-cavos-gcc
-SYSROOT = $(CURDIR)/../../../target
+COMPILER = clang
+SYSROOT = $(.CURDIR)/../../../target
+TRIPLE = x86_64-unknown-elf
 CFLAGS = -std=c17 -Wall -Wextra -nostdlib -fno-builtin -fno-pie -fno-pic \
                  -mcmodel=kernel -mno-red-zone -fno-stack-protector -ffreestanding \
-                 -I../../kernel/include -c --sysroot=$(SYSROOT)
+                 -I../../kernel/include -c --sysroot=$(SYSROOT) --target=$(TRIPLE) -isystem $(SYSROOT)/usr/include
 OUTPUT = module.ko
 TARGET = ../../../target/boot/
 

@@ -60,11 +60,6 @@ disk: disk_prepare clean
 disk_dirty: disk_prepare
 	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/kernel disk_dirty
 
-# Toolchain tracking via portable Python check
-TOOLCHAIN_GCC_VERSION != ~/opt/cross/bin/x86_64-cavos-gcc --version 2>/dev/null || true
-GCC_CHECK_DATE = 1727727259
-GCC_ACTUAL_DATE != python3 -c "import os; print(int(os.path.getmtime(os.path.expanduser('~/opt/cross/bin/x86_64-cavos-gcc'))))" 2>/dev/null || echo 0
-
 # Raw kernel.elf
 kernel:
 	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/kernel all
