@@ -1,0 +1,16 @@
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-range.mk:43: Variable "" is undefined
+	while evaluating "${:range=5} != """ with value "1 2 3 4 5"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-range.mk:53: Invalid number "-1}"" for modifier ":range"
+	while evaluating "${:range=-1}"" with value ""
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-range.mk:68: Invalid number "x}Rest" != "Rest"" for modifier ":range"
+	while evaluating "${:U:range=x}Rest" != "Rest"" with value ""
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-range.mk:78: Unknown modifier ":x0"
+	while evaluating "${:U:range=0x0}Rest" != "Rest"" with value "1"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-range.mk:95: Unknown modifier ":rang"
+	while evaluating variable "a b c" with value "a b c"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-range.mk:103: Unknown modifier ":rango"
+	while evaluating variable "a b c" with value "a b c"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-range.mk:111: Unknown modifier ":ranger"
+	while evaluating variable "a b c" with value "a b c"
+bmake: Fatal errors encountered -- cannot continue
+bmake: stopped making "all" in /home/paul/hOS-base/dep/bmake/unit-tests

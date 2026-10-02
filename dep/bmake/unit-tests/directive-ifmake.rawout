@@ -1,0 +1,14 @@
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-ifmake.mk:14: ok: positive condition works
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-ifmake.mk:26: ok: negation works
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-ifmake.mk:36: ok: double negation works
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-ifmake.mk:44: ok: both mentioned
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-ifmake.mk:52: ok: only those mentioned
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-ifmake.mk:63: Targets can even be added at parse time.
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-ifmake.mk:82: ok
+: first
+: second
+: late-target
+bmake: don't know how to make !edge (continuing)
+
+Stop.
+bmake: stopped making "first second late-target !edge" in /home/paul/hOS-base/dep/bmake/unit-tests

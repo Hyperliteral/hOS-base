@@ -1,0 +1,14 @@
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:12: begin .info tests
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:14: Unknown directive "inf"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:16: Missing argument for ".info"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:18: message
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:20: indented message
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:22: Unknown directive "information"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:24: Unknown directive "information"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:30: Missing argument for ".info"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:32: Missing argument for ".info"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:36: Unknown directive "info-message"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:38: no-target: no-source
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-info.mk:47: expect line 35 for multi-line message
+bmake: Fatal errors encountered -- cannot continue
+bmake: stopped making ".info.man" in /home/paul/hOS-base/dep/bmake/unit-tests

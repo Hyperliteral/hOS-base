@@ -1,0 +1,6 @@
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/cond-token-number.mk:17: Malformed conditional "-0"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/cond-token-number.mk:28: Malformed conditional "+0"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/cond-token-number.mk:39: Malformed conditional "!-1"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/cond-token-number.mk:50: Malformed conditional "!+1"
+bmake: Fatal errors encountered -- cannot continue
+bmake: stopped making "all" in /home/paul/hOS-base/dep/bmake/unit-tests

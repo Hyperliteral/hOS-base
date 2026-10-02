@@ -1,0 +1,8 @@
+At first, I am
+happy
+and now: sad
+*** Error code 1
+
+Stop.
+bmake: stopped making "all" in /home/paul/hOS-base/dep/bmake/unit-tests
+.ERROR: Looks like 'sad' is upset.

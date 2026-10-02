@@ -1,0 +1,95 @@
+: 'Making made-target.'
+false
+*** Error code 1 (continuing)
+false
+*** Error code 1 (continuing)
+`all' not remade because of errors.
+#*** Begin input graph for pass 2 in /home/paul/hOS-base/dep/bmake/unit-tests:
+# made-target, made, type OP_DEPENDS|OP_PHONY|OP_HAS_COMMANDS|OP_DEPS_FOUND|OP_MARK, flags REMAKE|DONE_ALLSRC
+#
+# *** MAIN TARGET ***
+# No unmade children
+# last modified 20:29:56 Oct 02, 2026: made
+# parents: all
+made-target     :
+	(null)
+
+
+# error-target, error when made, type OP_DEPENDS|OP_PHONY|OP_HAS_COMMANDS|OP_DEPS_FOUND|OP_MARK, flags REMAKE|DONE_ALLSRC
+#
+# No unmade children
+# nonexistent (maybe): error when made
+# parents: all
+error-target    :
+	(null)
+
+
+# aborted-target, aborted, type OP_DEPENDS|OP_PHONY|OP_DEPS_FOUND|OP_MARK, flags none
+# aborted-target-dependency, error when made, type OP_DEPENDS|OP_PHONY|OP_HAS_COMMANDS|OP_DEPS_FOUND|OP_MARK, flags REMAKE|DONE_ALLSRC
+#
+# No unmade children
+# nonexistent (maybe): error when made
+# parents: aborted-target
+aborted-target-dependency:
+	(null)
+
+
+# all, aborted, type OP_DEPENDS|OP_DEPS_FOUND, flags CHILDMADE|FORCE
+#
+# 3 unmade children
+# nonexistent (maybe): aborted
+all             : made-target error-target aborted-target
+
+
+# .END, unmade, type OP_SPECIAL, flags none
+
+
+#
+#   Files that are only sources:
+#	.END [.END]
+#*** Global Variables:
+.ALLTARGETS      =  made-target error-target aborted-target aborted-target-dependency all .END
+.CURDIR          = /home/paul/hOS-base/dep/bmake/unit-tests
+.INCLUDES        = # (empty)
+.LIBS            = # (empty)
+.MAKE            = /home/paul/hOS-base/dep/bmake/bmake
+.MAKE.DEPENDFILE = .depend
+.MAKE.GID        = 1000
+.MAKE.JOBS.C     = yes
+.MAKE.LEVEL      = 0
+.MAKE.LEVEL.ENV  = MAKELEVEL
+.MAKE.MAKEFILES  = opt-debug-graph2.mk
+.MAKE.MAKEFILE_PREFERENCE = makefile Makefile
+.MAKE.OS         = Linux
+.MAKE.PID        = 71464
+.MAKE.PPID       = 71463
+.MAKE.SAVE_DOLLARS = no
+.MAKE.UID        = 1000
+.MAKE.VERSION    = 20260912
+.MAKEFLAGS       =  -r -k -d g2
+.MAKEOVERRIDES   = # (empty)
+.OBJDIR          = /home/paul/hOS-base/dep/bmake/unit-tests
+.PATH            = . /home/paul/hOS-base/dep/bmake/unit-tests
+.TARGETS         =  all
+.newline         = 
+# (ends with space)
+MACHINE          = x86_64
+MACHINE_ARCH     = x86_64
+MAKE             = /home/paul/hOS-base/dep/bmake/bmake
+MAKE_VERSION     = 20260912
+MFLAGS           =   -r -k -d g2
+#*** Command-line Variables:
+.SHELL           = /bin/sh
+
+#*** Directory Cache:
+# Stats: 0 hits 4 misses 0 near misses 0 losers (0%)
+#  refs  hits  directory
+#     1     0  /home/paul/hOS-base/dep/bmake/unit-tests
+#     1     0  .
+
+#*** Suffixes:
+#*** Transformations:
+#*** End input graph for pass 2 in /home/paul/hOS-base/dep/bmake/unit-tests:
+
+Stop.
+bmake: stopped making "all" in /home/paul/hOS-base/dep/bmake/unit-tests

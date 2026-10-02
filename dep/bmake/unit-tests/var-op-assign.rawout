@@ -1,0 +1,5 @@
+this will be evaluated later
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/var-op-assign.mk:60: Invalid line "VARIABLE NAME=	variable value"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/var-op-assign.mk:95: Parsing still continues until here.
+bmake: Fatal errors encountered -- cannot continue
+bmake: stopped making "all" in /home/paul/hOS-base/dep/bmake/unit-tests

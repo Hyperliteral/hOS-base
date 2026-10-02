@@ -1,0 +1,4 @@
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/cond-cmp-numeric-eq.mk:68: Malformed conditional "!(12345 = 12345)"
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/cond-cmp-numeric-eq.mk:76: Malformed conditional "!(12345 === 12345)"
+bmake: Fatal errors encountered -- cannot continue
+bmake: stopped in /home/paul/hOS-base/dep/bmake/unit-tests

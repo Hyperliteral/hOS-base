@@ -1,0 +1,4 @@
+bmake[1]: /home/paul/hOS-base/dep/bmake/unit-tests/dep-op-missing.tmp:1: Invalid line "target"
+	in bmake[1] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+bmake[1]: Fatal errors encountered -- cannot continue
+bmake[1]: stopped in /home/paul/hOS-base/dep/bmake/unit-tests

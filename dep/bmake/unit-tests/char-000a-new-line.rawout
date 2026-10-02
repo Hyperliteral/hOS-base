@@ -1,0 +1,25 @@
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:14: used
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:14: +
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:14: word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:28: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:30: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:32: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:34: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:36: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:38: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:40: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:42: + used word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:44: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:46: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:48: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:50: 3
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:52: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:54: 1234567 1234567 1234567
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:56: 1 2 3
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:58: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:60: used + word
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/char-000a-new-line.mk:62: used + word
+bmake: don't know how to make + (continuing)
+
+Stop.
+bmake: stopped making "+" in /home/paul/hOS-base/dep/bmake/unit-tests

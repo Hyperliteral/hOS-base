@@ -1,0 +1,4 @@
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varparse-dynamic.mk:9: Variable ".TARGEX" is undefined
+bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varparse-dynamic.mk:12: Variable ".TARGXX" is undefined
+bmake: Fatal errors encountered -- cannot continue
+bmake: stopped in /home/paul/hOS-base/dep/bmake/unit-tests

@@ -1,0 +1,49 @@
+bmake[2]: Unknown modifier ":Z"
+	while evaluating "${:Z}" with value ""
+	in command "@echo ${:Z}"
+	in target "provoke-error" from varname-make_stack_trace.mk:42
+	in bmake[2] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+*** Error code 2 (continuing)
+
+Stop.
+bmake[1]: stopped making "disabled-compat" in /home/paul/hOS-base/dep/bmake/unit-tests
+bmake[2]: Unknown modifier ":Z"
+	while evaluating "${:Z}" with value ""
+	in command "@echo ${:Z}"
+	in target "provoke-error" from varname-make_stack_trace.mk:42
+	in bmake[2] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+*** [disabled-parallel] Error code 2
+
+bmake[1]: stopped making "disabled-parallel" in /home/paul/hOS-base/dep/bmake/unit-tests
+bmake[2]: Unknown modifier ":Z"
+	while evaluating "${:Z}" with value ""
+	in command "@echo ${:Z}"
+	in target "provoke-error" from varname-make_stack_trace.mk:42
+	in bmake[2] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+	in command "/home/paul/hOS-base/dep/bmake/bmake -f varname-make_stack_trace.mk provoke-error"
+	in target "enabled-compat" from varname-make_stack_trace.mk:35
+	in bmake[1] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+*** Error code 2 (continuing)
+
+Stop.
+bmake[1]: stopped making "enabled-compat" in /home/paul/hOS-base/dep/bmake/unit-tests
+bmake[2]: Unknown modifier ":Z"
+	while evaluating "${:Z}" with value ""
+	in command "@echo ${:Z}"
+	in target "provoke-error" from varname-make_stack_trace.mk:42
+	in bmake[2] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+	in target "enabled-parallel" from varname-make_stack_trace.mk:39
+	in bmake[1] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+*** [enabled-parallel] Error code 2
+
+bmake[1]: stopped making "enabled-parallel" in /home/paul/hOS-base/dep/bmake/unit-tests
+.make76596[5]: warning: Invalid internal option "-J" in "/home/paul/hOS-base/dep/bmake/unit-tests"; see the manual page
+	in .make76596[5] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+	in target "multi-stage-4" from varname-make_stack_trace.mk:56
+	in bmake[4] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+	in target "multi-stage-3" from varname-make_stack_trace.mk:54
+	in bmake[3] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+	in target "multi-stage-2" from varname-make_stack_trace.mk:52
+	in bmake[2] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+	in target "multi-stage-1" from varname-make_stack_trace.mk:50
+	in bmake[1] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"

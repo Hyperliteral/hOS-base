@@ -2924,37 +2924,52 @@ ParseLine(char *line)
 	ParseDependencyLine(line);
 }
 
-/* Interpret a top-level makefile. */
 void
 Parse_File(const char *name, int fd)
 {
-	char *line;
-	Buffer buf;
+    char *line;
+    Buffer buf;
+    int in_recipe = 0; // Tracks whether the next lines are expected to be shell commands
 
-	buf = LoadFile(name, fd != -1 ? fd : STDIN_FILENO);
-	if (fd != -1)
-		(void)close(fd);
+    buf = LoadFile(name, fd != -1 ? fd : STDIN_FILENO);
+    if (fd != -1)
+        (void)close(fd);
 
-	assert(targets == NULL);
+    assert(targets == NULL);
 
-	Parse_PushInput(name, 1, 0, buf, NULL);
+    Parse_PushInput(name, 1, 0, buf, NULL);
 
-	do {
-		while ((line = ReadHighLevelLine()) != NULL) {
-			ParseLine(line);
-		}
-	} while (ParseEOF());
+    do {
+        while ((line = ReadHighLevelLine()) != NULL) {
+            
+            // 1. Check if this line is a blank line or a directive/variable, which ends recipe blocks
+            if (line[0] == '\0' || line[0] == '.' || line[0] == '#') {
+                in_recipe = 0;
+            } else if (strchr(line, ':') != NULL && line[0] != '\t' && line[0] != ' ') {
+                // A very safe heuristic for a target dependency line (e.g., "all: dep")
+                in_recipe = 1;
+            }
 
-	FinishDependencyGroup();
+            // if we are in a recipe convert 4-space indent to \t (tab)
+            if (in_recipe && strncmp(line, "    ", 4) == 0) {
+                line[0] = '\t';
+                memmove(line + 1, line + 4, strlen(line + 4) + 1);
+            }
 
-	if (parseErrors != 0) {
-		(void)fflush(stdout);
-		(void)fprintf(stderr,
-		    "%s: Fatal errors encountered -- cannot continue\n",
-		    progname);
-		PrintOnError(NULL, "");
-		exit(1);
-	}
+            ParseLine(line);
+        }
+    } while (ParseEOF());
+
+    FinishDependencyGroup();
+
+    if (parseErrors != 0) {
+        (void)fflush(stdout);
+        (void)fprintf(stderr,
+            "%s: Fatal errors encountered -- cannot continue\n",
+            progname);
+        PrintOnError(NULL, "");
+        exit(1);
+    }
 }
 
 /* Initialize the parsing module. */
