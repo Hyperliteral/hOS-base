@@ -268,6 +268,7 @@ void fsInformReady(OpenFile *fd, int epollEvents);
 MountPoint *fsMount(char *prefix, CONNECTOR connector, uint32_t disk,
                                         uint8_t partition);
 bool                fsUnmount(MountPoint *mnt);
+bool       fsDetectFilesystem(uint32_t disk, uint8_t partition, FS *out);
 MountPoint *fsDetermineMountPoint(char *filename);
 char           *fsResolveSymlink(MountPoint *mnt, char *symlink);
 

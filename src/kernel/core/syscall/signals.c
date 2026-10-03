@@ -231,8 +231,8 @@ void signalsPendingHandleSys(void *taskPtr, uint64_t *rsp,
   oldstate.usermode_rsp = *rsp;
   oldstate.usermode_ss = GDT_USER_DATA | DPL_USER;
   // since the scheduler, our fpu state might've changed (from task.c)
-  asm volatile(" fxsave %0 " ::"m"(task->fpuenv));
-  asm("stmxcsr (%%rax)" : : "a"(&task->mxcsr));
+  __asm__ __volatile__(" fxsave %0 " ::"m"(task->fpuenv));
+  __asm__("stmxcsr (%%rax)" : : "a"(&task->mxcsr));
 
   size_t sigrsp = *rsp;
 
@@ -425,7 +425,7 @@ size_t signalsSigreturnSyscall(void *taskPtr) {
     }
   }
 
-  asm volatile("cli"); // we're using whileTssRsp which is strictly for sched
+  __asm__ __volatile__("cli"); // we're using whileTssRsp which is strictly for sched
   AsmPassedInterrupt *iretqRsp =
       (AsmPassedInterrupt *)(task->whileTssRsp - sizeof(AsmPassedInterrupt));
   memcpy(iretqRsp, &regs, sizeof(AsmPassedInterrupt));
@@ -435,7 +435,7 @@ size_t signalsSigreturnSyscall(void *taskPtr) {
 
   memcpy(task->fpuenv, ucontext->fpstate, sizeof(task->fpuenv));
   task->mxcsr = ucontext->fpstate->mxcsr;
-  asm volatile(" fxrstor %0 " ::"m"(task->fpuenv));
+  __asm__ __volatile__(" fxrstor %0 " ::"m"(task->fpuenv));
 
   task->systemCallInProgress = false;
   task->syscallRegs = 0;

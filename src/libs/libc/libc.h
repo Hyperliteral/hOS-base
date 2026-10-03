@@ -1,5 +1,5 @@
-#ifndef MACHO_RUNTIME_H
-#define MACHO_RUNTIME_H
+#ifndef CAVOS_LIBC_H
+#define CAVOS_LIBC_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -8,11 +8,11 @@
 extern "C" {
 #endif
 
-#define MACHO_PRINTF_FORMAT(a, b) __attribute__((format(printf, a, b)))
+#define CAVOS_PRINTF_FORMAT(a, b) __attribute__((format(printf, a, b)))
 
 extern char **environ;
 
-int printf(const char *, ...) MACHO_PRINTF_FORMAT(1, 2);
+int printf(const char *, ...) CAVOS_PRINTF_FORMAT(1, 2);
 int puts(const char *);
 int putchar(int);
 

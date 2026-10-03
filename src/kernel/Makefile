@@ -32,6 +32,11 @@ _CONFIG_GEN != python3 ${TOOLS}/config/configure.py --defaults
 .export CONFIG_CFLAGS
 
 .PHONY: all config disk disk_dirty vmware tools clean qemu qemu_dbg
+# The archives are sub-make products, and this makefile has no way to know when
+# a .c under core/ or services/ changed. Without .PHONY the archive is simply
+# "up to date" as soon as it exists, so edits are silently never compiled.
+# Recursing unconditionally is cheap: the sub-makes do the incremental work.
+.PHONY: ${CORE} ${SERVICES}
 
 all: ${CORE} ${SERVICES}
 	mkdir -p ${TARGET}/boot

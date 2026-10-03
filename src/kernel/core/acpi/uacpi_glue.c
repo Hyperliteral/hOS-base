@@ -156,9 +156,9 @@ uacpi_cpu_flags uacpi_kernel_lock_spinlock(uacpi_handle lock) {
 void uacpi_kernel_unlock_spinlock(uacpi_handle lock, uacpi_cpu_flags intstate) {
   spinlockRelease(lock);
   if (intstate)
-    asm volatile("sti");
+    __asm__ __volatile__("sti");
   else
-    asm volatile("cli");
+    __asm__ __volatile__("cli");
 }
 
 uacpi_handle uacpi_kernel_create_mutex(void) {

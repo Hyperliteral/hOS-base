@@ -1,5 +1,6 @@
 #include <executable.h>
 #include <shell.h>
+#include <string.h>
 #include <system.h>
 #include <task.h>
 #include <types.h>
@@ -10,7 +11,23 @@
 // Copyright (C) 2024 Panagiotis
 
 bool run(char *binary, bool wait, int _argc, char **_argv) {
-  char *argv[] = {binary};
+  // argv[0] is the name the program was asked to run as, and the kernel copies
+  // it verbatim into /proc/<pid>/cmdline - which is what `ps` prints in its
+  // COMMAND column. Handing it the full path is why every process the kernel
+  // starts shows up as "/usr/bin/initd" rather than "initd".
+  //
+  // The file is still opened by the full path; only the name it is reported
+  // under changes. A shell never does the thing this replaces: execvp passes
+  // argv[0] through untouched, and a shell sets it to the word that was typed,
+  // so a bare name is both what a user expects to see and the safer choice for
+  // busybox, which dispatches its applets off argv[0] and would look for an
+  // applet literally named "/usr/bin/adduser".
+  const char *invokedAs = binary;
+  const char *slash    = strrchr(binary, '/');
+  if (slash)
+    invokedAs = slash + 1;
+
+  char *argv[] = {(char *)invokedAs};
   Task *task = 0;
   if (_argc > 0)
     task = executableExecute(binary, _argc, _argv, 0, 0, false);

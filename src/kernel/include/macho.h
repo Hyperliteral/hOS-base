@@ -43,6 +43,57 @@
 #define N_TYPE 0x0eU
 #define N_SECT 0xeU
 
+#define VM_PROT_READ 0x1
+#define VM_PROT_WRITE 0x2
+#define VM_PROT_EXECUTE 0x4
+
+// Export trie, as emitted into LC_DYLD_EXPORTS_TRIE or into the export_off /
+// export_size pair of LC_DYLD_INFO(_ONLY). A dylib has no symbol table the
+// loader is meant to walk for exports; this is the index it publishes instead.
+#define EXPORT_SYMBOL_FLAGS_KIND_MASK 0x03U
+#define EXPORT_SYMBOL_FLAGS_KIND_REGULAR 0x00U
+#define EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL 0x01U
+#define EXPORT_SYMBOL_FLAGS_KIND_ABSOLUTE 0x02U
+#define EXPORT_SYMBOL_FLAGS_WEAK_DEFINITION 0x04U
+#define EXPORT_SYMBOL_FLAGS_REEXPORT 0x08U
+#define EXPORT_SYMBOL_FLAGS_STUB_AND_RESOLVER 0x10U
+
+// Bind opcodes. These walk the pointer slots an executable left for its imports
+// and overwrite each one with the address the symbol actually resolved to.
+#define BIND_OPCODE_MASK 0xf0U
+#define BIND_IMMEDIATE_MASK 0x0fU
+#define BIND_OPCODE_DONE 0x00U
+#define BIND_OPCODE_SET_DYLIB_ORDINAL_IMM 0x10U
+#define BIND_OPCODE_SET_DYLIB_ORDINAL_ULEB 0x20U
+#define BIND_OPCODE_SET_DYLIB_SPECIAL_IMM 0x30U
+#define BIND_OPCODE_SET_SYMBOL_TRAILING_FLAGS_IMM 0x40U
+#define BIND_OPCODE_SET_TYPE_IMM 0x50U
+#define BIND_OPCODE_SET_ADDEND_SLEB 0x60U
+#define BIND_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB 0x70U
+#define BIND_OPCODE_ADD_ADDR_ULEB 0x80U
+#define BIND_OPCODE_DO_BIND 0x90U
+#define BIND_OPCODE_DO_BIND_ADD_ADDR_ULEB 0xa0U
+#define BIND_OPCODE_DO_BIND_ADD_ADDR_IMM_SCALED 0xb0U
+#define BIND_OPCODE_DO_BIND_ULEB_TIMES_SKIPPING_ULEB 0xc0U
+
+#define BIND_TYPE_POINTER 1
+#define BIND_TYPE_TEXT_ABSOLUTE32 2
+#define BIND_TYPE_TEXT_PCREL32 3
+
+// Rebase opcodes. These apply the slide to pointers the image already holds,
+// which only matters for a dylib: a non-PIE executable is mapped exactly where
+// it was linked, so its slide is zero and rebasing it is a no-op.
+#define REBASE_OPCODE_MASK 0xf0U
+#define REBASE_IMMEDIATE_MASK 0x0fU
+#define REBASE_OPCODE_DONE 0x00U
+#define REBASE_OPCODE_SET_TYPE_IMM 0x10U
+#define REBASE_OPCODE_SET_SEGMENT_AND_OFFSET_ULEB 0x20U
+#define REBASE_OPCODE_ADD_ADDR_ULEB 0x30U
+#define REBASE_OPCODE_DO_REBASE_IMM_TIMES 0x40U
+#define REBASE_OPCODE_DO_REBASE_ULEB_TIMES 0x50U
+#define REBASE_OPCODE_DO_REBASE_ADD_ADDR_ULEB 0x60U
+#define REBASE_OPCODE_DO_REBASE_ULEB_TIMES_SKIPPING_ULEB 0x70U
+
 typedef int32_t MachOCpuType;
 typedef int32_t MachOCpuSubtype;
 typedef uint32_t MachOFileType;

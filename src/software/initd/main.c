@@ -18,6 +18,48 @@
 static const char *MODULES_FILE = "/etc/modules";
 static const char *BOOT_DIR = "/boot";
 
+// The interactive shell, and the environment it starts from.
+//
+// "-l" matters: a login shell is what makes bash read /etc/profile, and on cavOS
+// /etc/profile is the single place that carries both the real PATH and the
+// coloured PS1. Without it neither /etc/profile nor /etc/profile.d is ever read,
+// so the prompt comes out bare and the shell keeps whatever PATH it was handed.
+// Starting it non-login with a bare "PATH=/bin" is what made everything outside
+// /bin unreachable: clear and Xorg live in /usr/bin, adduser in /usr/sbin and apk
+// in /sbin, so all four reported as "command not found" even though they were
+// installed and sitting on the filesystem.
+//
+// The environment below is the floor, not the whole story - /etc/profile will
+// overwrite PATH with the same value - but a program that initd execs later, or
+// one that never sources /etc/profile, still needs a PATH that can actually
+// reach the filesystem. HOME/USER/SHELL matter because tools consult them
+// instead of calling getpwuid(), which is not something to make them do first.
+//
+// argv[0] is "bash" and not the path it is opened by. The kernel copies argv
+// verbatim into /proc/<pid>/cmdline, and `ps` prints that as its COMMAND column,
+// so the full path here is exactly why the shell was listed as "/bin/bash -l".
+// A shell resolving a name off PATH behaves the same way: it passes along the
+// word that was typed, not the path it turned up in. Keeping the path in argv[0]
+// is also the option busybox handles worst, since it picks its applet by argv[0]
+// and would go looking for one named "/usr/bin/adduser".
+static char *shell_argv[] = { "bash", "-l", NULL };
+static char *shell_envp[] = {
+    "PATH=/bin:/usr/bin:/usr/local/bin:/usr/local/sbin:/usr/sbin:/sbin:/bin",
+    "HOME=/root",
+    "USER=root",
+    "LOGNAME=root",
+    "SHELL=/bin/bash",
+    "TERM=linux",
+    NULL,
+};
+
+// Runs in the child of fork(); execve only returns on failure.
+static void execShell(void) {
+    execve("/bin/bash", shell_argv, shell_envp);
+    perror("[initd] Failed to execute /bin/bash");
+    _exit(127);
+}
+
 static char *trim(char *s) {
     while (*s == ' ' || *s == '\t')
         s++;
@@ -88,11 +130,7 @@ int main(int argc, char *argv[]) {
         _exit(1);
     }
     else if (shell_pid == 0) {
-        char *exec_argv[] = { "/bin/bash", NULL };
-        char *exec_envp[] = { "PATH=/bin", "TERM=linux", NULL };
-        execve("/bin/bash", exec_argv, exec_envp);
-        perror("[initd] Failed to execute /bin/bash");
-        _exit(127);
+        execShell();
     }
 
     while (1) {
@@ -115,11 +153,7 @@ int main(int argc, char *argv[]) {
                 continue;
             }
             else if (shell_pid == 0) {
-                char *exec_argv[] = { "/bin/bash", NULL };
-                char *exec_envp[] = { "PATH=/bin", "TERM=linux", NULL };
-                execve("/bin/bash", exec_argv, exec_envp);
-                perror("[initd] Failed to execute /bin/bash");
-                _exit(127);
+                execShell();
             }
         } else {
             printf("[initd] Reaped orphan process PID %d\n", (int)terminated);

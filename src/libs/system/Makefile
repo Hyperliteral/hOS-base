@@ -18,12 +18,14 @@ compile:
 	$(COMPILER) $(CFLAGS) main.c -o main.o
 	$(COMPILER) $(CFLAGS) crt0.c -o crt0.o
 	$(ARCHIVER) rcs $(LIB_OUTPUT) $(SYSTEM_OBJS)
-	sudo cp crt0.o $(CRT_OUTPUT)
 
+# Only target/ is root-owned (ports populates it), so this is the sole step that
+# needs sudo. crt0.o is installed under the crt1.o name the link lines expect,
+# so there is no need to stage a second copy in the build directory.
 install:
 	mkdir -p $(LIBDIR)
 	sudo cp $(LIB_OUTPUT) $(LIBDIR)/
-	sudo cp $(CRT_OUTPUT) $(LIBDIR)/
+	sudo cp $(CRT_OBJ) $(LIBDIR)/$(CRT_OUTPUT)
 
 clean:
 	rm -f $(SYSTEM_OBJS) $(CRT_OBJ) $(LIB_OUTPUT) $(CRT_OUTPUT)

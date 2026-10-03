@@ -111,7 +111,10 @@ size_t procStatRead(OpenFile *fd, uint8_t *out, size_t limit) {
   assert(target);
 
   int32_t pid = target->id;
-  char    comm[12] = {0};
+  // Field 2 is comm: the name of the executable, *not* argv[0], which is what
+  // field 2's counterpart in /proc/<pid>/cmdline holds. Linux caps it at
+  // TASK_COMM_LEN - 1 == 15 characters plus the NUL.
+  char comm[16] = {0};
   char    state = procDetermineState(target);
 
   int32_t  ppid = target->parent ? target->parent->id : 0;
@@ -175,7 +178,7 @@ size_t procStatRead(OpenFile *fd, uint8_t *out, size_t limit) {
     if (target->cmdline[i] == '/')
       commStart = i + 1;
   }
-  memcpy(comm, &target->cmdline[commStart], MIN(cmdline0len - commStart, 11));
+  memcpy(comm, &target->cmdline[commStart], MIN(cmdline0len - commStart, 15));
 
   char statOutput[4096] = {0};
   int  len = snprintf(

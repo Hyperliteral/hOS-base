@@ -82,7 +82,7 @@ void initiatePaging() {
 
   // I will keep on using limine's for the time being
   uint64_t pdPhys = 0;
-  asm volatile("movq %%cr3,%0" : "=r"(pdPhys));
+  __asm__ __volatile__("movq %%cr3,%0" : "=r"(pdPhys));
   if (!pdPhys) {
     debugf("[paging] Could not parse default pagedir!\n");
     panic();
@@ -115,7 +115,7 @@ void ChangePageDirectoryUnsafe(uint64_t *pd) {
     debugf("[paging] Could not change to pd{%lx}!\n", pd);
     panic();
   }
-  asm volatile("movq %0, %%cr3" ::"r"(targ));
+  __asm__ __volatile__("movq %0, %%cr3" ::"r"(targ));
 
   globalPagedir = pd;
 }
@@ -156,7 +156,7 @@ uint64_t *GetTaskPageDirectory(void *taskPtr) {
 }
 
 void invalidate(uint64_t vaddr) {
-  asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
+  __asm__ __volatile__("invlpg (%0)" ::"r"(vaddr) : "memory");
 }
 
 size_t PagingPhysAllocate() {

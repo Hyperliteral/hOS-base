@@ -56,14 +56,14 @@ static size_t syscallSetitimer(int which, struct itimerval *value,
 
     dbgSysExtraf("val{%ld} int{%ld}", targValue, targInterval);
 
-    asm volatile("cli"); // just in case
+    __asm__ __volatile__("cli"); // just in case
     if (targValue)
       atomicWrite64(&currentTask->infoSignals->itimerReal.at,
                     timerTicks + targValue);
     else
       atomicWrite64(&currentTask->infoSignals->itimerReal.at, 0);
     atomicWrite64(&currentTask->infoSignals->itimerReal.reset, targInterval);
-    asm volatile("sti");
+    __asm__ __volatile__("sti");
   }
 
   return 0;

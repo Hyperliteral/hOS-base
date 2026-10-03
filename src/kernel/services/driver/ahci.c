@@ -125,7 +125,7 @@ force_inline bool ahciCmdIssue(ahci *ahciPtr, HBA_PORT *port, int slot) {
     // Wait for CR (Command Running) to clear safely using a CPU pause loop
     int timeout = 100000;
     while ((port->cmd & HBA_PxCMD_CR) && timeout--) {
-      asm volatile("pause");
+      __asm__ __volatile__("pause");
     }
 
     // 2. Clear error and interrupt status registers

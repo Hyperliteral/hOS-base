@@ -25,6 +25,8 @@ build_package() {
 	tar -xf "$package_name-$version.tar.gz"
 	cd "$package_name-$version"
 	./configure --prefix="$install_dir"
+	# Upstream automake/autoconf ship GNU make build systems; we drive them with
+	# GNU make rather than bmake, which cannot parse them.
 	make
 	make install
 	cd ..

@@ -57,10 +57,10 @@ size_t acpiPoweroff() {
     return ERR(EIO);
   }
 
-  asm volatile("cli");
+  __asm__ __volatile__("cli");
   uacpi_status retPoweroff = uacpi_enter_sleep_state(UACPI_SLEEP_STATE_S5);
   if (uacpi_unlikely_error(retPoweroff)) {
-    asm volatile("sti");
+    __asm__ __volatile__("sti");
     debugf("[acpi] Couldn't power off the system: %s\n",
            uacpi_status_to_string(retPoweroff));
     return ERR(EIO);

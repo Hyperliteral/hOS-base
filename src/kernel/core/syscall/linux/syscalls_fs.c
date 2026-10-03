@@ -28,8 +28,8 @@ static size_t syscallWrite(int fd, char *str, uint32_t count) {
   OpenFile *browse = fsUserGetNode(currentTask, fd);
   if (!browse)
     return ERR(EBADF);
-  debugf("[write] fd{%d} count{%u}\n", fd, count);
   size_t result = fsWrite(browse, (uint8_t *)str, count);
+  debugf("[write] fd{%d} count{%u}\n", fd, count);
   debugf("[write] result{%ld}\n", (long)result);
   return result;
 }
@@ -656,6 +656,185 @@ static size_t syscallStatx(int dirfd, char *pathname, int flags, uint32_t mask,
   return 0;
 }
 
+// mount(2), at the syscall number Linux puts it at. Keeping the number and the
+// argument order identical is the whole point: a program built against Linux
+// headers calls this without knowing cavOS exists.
+//
+//   int mount(const char *source, const char *target,
+//            const char *filesystemtype, unsigned long mountflags,
+//            const void *data);
+//
+// The dispatcher already hands every handler Linux's register order, so
+// mountflags arrives in r10 and data in r8 without any shuffling here.
+#define SYSCALL_MOUNT 165
+
+// What satisfying a mount(2) filesystem name actually requires of cavOS.
+typedef enum {
+  MOUNT_UNSUPPORTED, // no provider at all -> ENODEV, as Linux does
+  MOUNT_VIRTUAL,     // the connector alone decides; there is no on-disk format
+  MOUNT_BLOCK,       // a real partition, named by source
+} MountRequestKind;
+
+// Every filesystem name mount(2) answers to, and what each one needs. Both the
+// classifier and the on-disk check below read these same rows, so the list of
+// names cavOS accepts cannot drift away from the list it can actually provide.
+typedef struct {
+  char             *name;
+  MountRequestKind  kind;
+  CONNECTOR         connector; // MOUNT_VIRTUAL only
+  FS                detected;  // MOUNT_BLOCK only: what fsDetectFilesystem must say
+} MountFsEntry;
+
+static const MountFsEntry *mountFindFs(char *filesystemtype) {
+  static const MountFsEntry table[] = {
+      {.name = "proc", .kind = MOUNT_VIRTUAL, .connector = CONNECTOR_PROC},
+      {.name = "procfs", .kind = MOUNT_VIRTUAL, .connector = CONNECTOR_PROC},
+      {.name = "sysfs", .kind = MOUNT_VIRTUAL, .connector = CONNECTOR_SYS},
+      {.name = "devtmpfs", .kind = MOUNT_VIRTUAL, .connector = CONNECTOR_DEV},
+      {.name = "devfs", .kind = MOUNT_VIRTUAL, .connector = CONNECTOR_DEV},
+      {.name = "ext2", .kind = MOUNT_BLOCK, .detected = FS_EXT2},
+      {.name = "ext3", .kind = MOUNT_BLOCK, .detected = FS_EXT2}, // ext2 layout
+      {.name = "ext4", .kind = MOUNT_BLOCK, .detected = FS_EXT4},
+      {.name = "vfat", .kind = MOUNT_BLOCK, .detected = FS_FATFS},
+      {.name = "msdos", .kind = MOUNT_BLOCK, .detected = FS_FATFS},
+      {.name = "fat", .kind = MOUNT_BLOCK, .detected = FS_FATFS},
+      {.name = "fat16", .kind = MOUNT_BLOCK, .detected = FS_FATFS},
+      {.name = "fat32", .kind = MOUNT_BLOCK, .detected = FS_FATFS},
+  };
+
+  for (size_t i = 0; i < sizeof(table) / sizeof(table[0]); i++)
+    if (strEql(filesystemtype, table[i].name))
+      return &table[i];
+
+  return 0;
+}
+
+// Turns a block device path into the (disk, partition) pair fsMount takes.
+//
+// AHCI drives are registered as "sd<letter>" and their partitions as
+// "sd<letter><n>", counting from 1 exactly as Linux does. fsMount indexes the
+// MBR partition table from 0, so the Linux partition number is one higher than
+// the index it wants - the same off-by-one the kernel's own boot mounts rely on
+// when it takes the first MBR entry as partition 0 and the second as partition
+// 1.
+static bool mountParseBlockDevice(char *source, uint32_t *disk,
+                                  uint8_t *partition) {
+  if (!source || source[0] != '/')
+    return false;
+
+  const char *name = strrchr(source, '/');
+  name = name ? name + 1 : source;
+
+  if (name[0] != 's' && name[0] != 'h')
+    return false;
+  name++;
+
+  // Both buses spell themselves into the name - AHCI registers a drive as
+  // "sdX" and IDE as "hdX" - so the drive letter is always the third character
+  // and a partition name looks like /dev/sda2 or /dev/hdb1. Reading the letter
+  // straight after the s/h would match nothing that actually exists.
+  if (name[0] != 'd')
+    return false;
+  name++;
+
+  if (name[0] < 'a' || name[0] > 'z')
+    return false;
+  *disk = (uint32_t)(name[0] - 'a');
+  name++;
+
+  // The partition number is mandatory. Taking it from the name is what keeps
+  // this honest; mounting a whole disk would need openDisk to skip the MBR table
+  // entirely, which it cannot do today.
+  if (!isdigit(name[0]))
+    return false;
+
+  uint32_t number = 0;
+  while (isdigit(*name)) {
+    number = number * 10 + (uint32_t)(*name++ - '0');
+    if (number > 4) // an MBR has four entries; stop before this runs away
+      return false;
+  }
+
+  if (*name != '\0' || number == 0)
+    return false;
+
+  *partition = (uint8_t)(number - 1);
+  return true;
+}
+
+static size_t syscallMount(char *source, char *target, char *filesystemtype,
+                           uint64_t mountflags, void *data) {
+  if (!target || !filesystemtype)
+    return ERR(EFAULT);
+  if (target[0] == '\0')
+    return ERR(EFAULT);
+
+  // Linux resolves a relative mount target against the caller's cwd, but a
+  // mount point is a global thing, and accepting a relative one here would let
+  // the same call mean different paths depending on who made it.
+  if (target[0] != '/')
+    return ERR(EINVAL);
+
+  // These ask for an existing mount to be rearranged. cavOS has no way to reopen
+  // one, and quietly reporting success for a bind or a move would be worse than
+  // refusing.
+  if (mountflags & (MS_BIND | MS_MOVE | MS_REMOUNT))
+    return ERR(EINVAL);
+
+  const MountFsEntry *fs = mountFindFs(filesystemtype);
+  if (!fs)
+    return ERR(ENODEV);
+
+  CONNECTOR connector = fs->connector;
+  uint32_t  disk = 0;
+  uint8_t   partition = 0;
+
+  if (fs->kind == MOUNT_BLOCK) {
+    if (!mountParseBlockDevice(source, &disk, &partition))
+      return ERR(ENOENT);
+
+    // Check the request against the partition before mounting, so a caller that
+    // asked for the wrong filesystem hears about it.
+    FS detected;
+    if (!fsDetectFilesystem(disk, partition, &detected))
+      return ERR(ENODEV);
+    if (detected != fs->detected)
+      return ERR(EINVAL);
+  }
+
+  // fsMount keys every mount off a prefix with a trailing '/', which the kernel's
+  // own boot mounts spell out but callers of mount(2) will not. data is
+  // filesystem-specific (mount options, or the payload for a ramfs) and nothing
+  // cavOS mounts takes one, so it is accepted and ignored the way Linux accepts
+  // options it has no use for.
+  (void)data;
+
+  size_t targetLen = strlength(target);
+  char *prefix = malloc(targetLen + 2);
+  memcpy(prefix, target, targetLen);
+  if (targetLen == 0 || target[targetLen - 1] != '/')
+    prefix[targetLen++] = '/';
+  prefix[targetLen] = '\0';
+
+  MountPoint *mnt = fsMount(prefix, connector, disk, partition);
+
+  // Userspace sees mount failures only as an errno in its own address space, and
+  // on cavOS its stdout goes to the console rather than the serial line, so
+  // without this a rejected mount is invisible from a headless boot. Logged
+  // before the free, since the message reads prefix.
+  if (mnt) {
+    debugf("[mount] %s on %s (source{%s})\n", fs->name, prefix,
+           source ? source : "-");
+    free(prefix);
+    return 0;
+  }
+
+  debugf("[mount] %s on %s (source{%s}) failed: ENODEV\n", fs->name, prefix,
+         source ? source : "-");
+  free(prefix);
+  return ERR(ENODEV);
+}
+
 void syscallRegFs() {
   registerSyscall(SYSCALL_WRITE, syscallWrite);
   registerSyscall(SYSCALL_READ, syscallRead);
@@ -700,4 +879,5 @@ void syscallRegFs() {
   registerSyscall(SYSCALL_LCHOWN, syscallLchown);
   registerSyscall(SYSCALL_RENAME, syscallRename);
   registerSyscall(SYSCALL_RENAMEAT, syscallRenameat);
+  registerSyscall(SYSCALL_MOUNT, syscallMount);
 }

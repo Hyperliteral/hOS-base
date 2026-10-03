@@ -64,7 +64,7 @@ void _start(void) {
   initiateACPI(); // needed for APIC setup
   initiatePaging();
   initiateAPIC();
-  asm volatile("sti" ::: "memory");
+  __asm__ __volatile__("sti" ::: "memory");
 
   debugf("\n====== REACHED SYSTEM ======\n");
   initiateApicTimer(); // mouse needs a timer

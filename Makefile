@@ -5,7 +5,7 @@ TOPDIR ?= ${.CURDIR}
 
 all: disk
 
-.PHONY: disk tools clean qemu qemu_dbg vmware dev kernel musl remusl cleanmusl limine ports macho config
+.PHONY: disk tools clean qemu qemu_dbg vmware dev kernel musl remusl cleanmusl limine ports macho libc system config
 
 config:
 	python3 tools/config/configure.py
@@ -28,6 +28,20 @@ musl:
 macho:
 	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/macho
 
+# libc.dylib, the Mach-O C library. Kept separate from the "macho" target above
+# because it is a different kind of artifact: that one is a static archive
+# holding only the entry stub, this one is a real dylib that executables link
+# against by name and resolve at load time.
+libc:
+	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/libc
+
+# Userspace startup code and syscall wrappers. Every binary in SOFTWARE_DIRS
+# links against ${LIBDIR}/crt1.o and ${LIBDIR}/libsystem.a, so this has to run
+# before them - otherwise they silently relink against a stale crt1.o left
+# behind by an earlier build.
+system:
+	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/system
+
 # Essential ports
 ports:
 	chmod +x tools/userland/ports.sh
@@ -49,9 +63,14 @@ uacpi:
 	tools/kernel/uacpi.sh
 
 # Primary (disk creation)
-disk_prepare: limine uacpi musl ports macho
+# `libc` has to precede the software loop below, because every Mach-O binary in
+# it links against libc.dylib by name and needs the file to exist at link time.
+disk_prepare: limine uacpi musl ports macho libc system
+# `|| exit 1` is load-bearing: without it the loop's exit status is the status of
+# the last iteration only, so a userspace build that failed early would still let
+# make go on and bake a broken image.
 	@for dir in ${SOFTWARE_DIRS}; do \
-		${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C "$$dir" -j1; \
+		${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C "$$dir" -j1 || exit 1; \
 	done
 
 disk: disk_prepare clean

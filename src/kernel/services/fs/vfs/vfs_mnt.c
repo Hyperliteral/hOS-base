@@ -18,17 +18,24 @@
 
 // todo: add LL lock to mountPoints
 
+// Detaches a mount point and frees what it owns.
+//
+// This deliberately does not panic, and it is deliberately not reachable from
+// umount(2) yet. fsMount calls it on every failure path, so once mount(2) hands
+// user-controlled input to fsMount, a panic here would turn every failed mount
+// attempt - a typo, an unknown fstype, a full disk - into a kernel panic. It
+// only unregisters the mount point and releases memory; there is still no
+// per-filesystem unmount hook and no writeback barrier, so tearing down a
+// filesystem that other tasks still hold open would hand them dangling
+// pointers. Until both of those exist the only callers are fsMount's own
+// failure paths, where the mount point was never visible to anyone.
 bool fsUnmount(MountPoint *mnt) {
-  debugf("[vfs] Tried to unmount!\n");
-  panic();
   LinkedListUnregister(&dsMountPoint, sizeof(MountPoint), mnt);
 
-  // todo!
-  // switch (mnt->filesystem) {
-  // case FS_FATFS:
-  //   f_unmount("/");
-  //   break;
-  // }
+  // fsMount zeroes every MountPoint it allocates, so one that bailed out
+  // partway through still has a valid (or NULL) fsInfo here.
+  if (mnt->fsInfo)
+    free(mnt->fsInfo);
 
   free(mnt->prefix);
   free(mnt);
@@ -48,6 +55,29 @@ bool isFat(mbr_partition *mbr) {
 }
 
 bool isExt2(mbr_partition *mbr) { return mbr->type == 0x83; }
+
+// Reports which filesystem a partition actually holds, without mounting it.
+//
+// fsMount works this out for itself from the partition's boot sector, but only
+// after it has committed to the mount. mount(2) needs the answer up front so it
+// can tell the caller that asking for ext4 on an ext2 partition failed, rather
+// than mounting ext2 and reporting success.
+bool fsDetectFilesystem(uint32_t disk, uint8_t partition, FS *out) {
+  mbr_partition mbr;
+  if (!openDisk(disk, partition, &mbr))
+    return false;
+
+  if (isFat(&mbr)) {
+    *out = FS_FATFS;
+    return true;
+  }
+  if (isExt2(&mbr)) {
+    *out = probeExt4(&mbr) ? FS_EXT4 : FS_EXT2;
+    return true;
+  }
+
+  return false;
+}
 
 // prefix MUST end with '/': /mnt/handle/
 MountPoint *fsMount(char *prefix, CONNECTOR connector, uint32_t disk,

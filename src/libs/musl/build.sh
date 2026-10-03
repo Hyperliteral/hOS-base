@@ -44,6 +44,7 @@ RANLIB="llvm-ranlib" \
     --syslibdir="/lib" \
     --enable-debug
 
+# Upstream musl is a GNU make project, so GNU make drives it here on purpose.
 make clean
 make all -j$(nproc)
 make install

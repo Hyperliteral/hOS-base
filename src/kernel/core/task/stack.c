@@ -63,6 +63,12 @@ void stackGenerateUser(Task *target, uint32_t argc, char **argv, uint32_t envc,
   spinlockRelease(&target->infoPd->LOCK_PD);
 
   stackGenerateMutual(target);
+  // Entry RSP has to land on argc, as Linux and the psABI both require, and its
+  // parity then depends on how many words the frame below happens to occupy. We
+  // deliberately do not fudge that parity here: USER_STACK_BOTTOM is an
+  // unmapped exclusive top so the frame cannot move up, and padding below argc
+  // would hide argc from the crt0. Alignment is the entry code's job - the crt0s
+  // mask RSP down before their first call, exactly as musl's crt1 does.
   target->registers.usermode_rsp = USER_STACK_BOTTOM;
 
 #define PUSH_TO_STACK(a, b, c)                                                 \

@@ -25,11 +25,18 @@ fi
 
 LIMINE_DIR="${SCRIPTPATH}/../../src/bootloader/limine/"
 LIMINE_EXEC="${LIMINE_DIR}/limine"
+LIMINE_CONF="${SCRIPTPATH}/../../src/bootloader/limine.conf"
 
 if [ ! -f "${LIMINE_EXEC}" ]; then
         echo "Please compile the bootloader (limine) first!"
         exit 1
 fi
+
+# Stage the UEFI loader into the target tree before anything is imaged. The
+# "${1}/*" copy further down then carries it onto the boot partition alongside
+# the BIOS loader and the kernel, and the image sizing below accounts for it.
+mkdir -p "${1}/boot/limine"
+cp "$LIMINE_DIR/BOOTX64.EFI" "${1}/boot/limine/"
 
 SIZE_IN_BYTES=$(du -sb "$1" | cut -f1)
 SIZE_IN_BLOCKS=$((($SIZE_IN_BYTES / 512) * 2 + 500000))
@@ -60,6 +67,17 @@ sudo mkdir -p "${2}/boot/limine/" "${2}/boot/EFI/BOOT"
 sudo cp "$LIMINE_DIR/limine-bios.sys" "${2}/boot/limine/"
 sudo cp "$LIMINE_DIR/BOOTX64.EFI" "${2}/boot/EFI/BOOT"
 sudo cp "$LIMINE_DIR/BOOTIA32.EFI" "${2}/boot/EFI/BOOT"
+
+# NOTE: "${2}/boot" is the mount point of the *FAT boot partition*, so paths
+# below it are relative to the root of that partition, not to the ext4 root.
+# "/limine.conf" is the first candidate Limine looks for, and works for both
+# BIOS and UEFI.
+if [ -f "$LIMINE_CONF" ]; then
+        sudo cp "$LIMINE_CONF" "${2}/boot/limine.conf"
+else
+        echo "NOTE: no Limine config at ${LIMINE_CONF};" \
+                "installing no limine.conf onto the boot partition." >&2
+fi
 
 # UPDATED LINE: Added --no-preserve=ownership to prevent FAT32 errors
 if [ -z "$4" ]; then

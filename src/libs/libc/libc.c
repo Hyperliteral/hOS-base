@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "macho.h"
+#include "libc.h"
 
 #define SYS_READ 0
 #define SYS_WRITE 1
@@ -43,7 +43,7 @@ static bool      allocator_ready;
 
 static long cavos_syscall0(long number) {
   long result;
-  __asm__ volatile("syscall"
+  __asm__ __volatile__("syscall"
                    : "=a"(result)
                    : "a"(number)
                    : "rcx", "r11", "memory");
@@ -52,7 +52,7 @@ static long cavos_syscall0(long number) {
 
 static long cavos_syscall1(long number, long first) {
   long result;
-  __asm__ volatile("syscall"
+  __asm__ __volatile__("syscall"
                    : "=a"(result)
                    : "a"(number), "D"(first)
                    : "rcx", "r11", "memory");
@@ -61,7 +61,7 @@ static long cavos_syscall1(long number, long first) {
 
 static long cavos_syscall2(long number, long first, long second) {
   long result;
-  __asm__ volatile("syscall"
+  __asm__ __volatile__("syscall"
                    : "=a"(result)
                    : "a"(number), "D"(first), "S"(second)
                    : "rcx", "r11", "memory");
@@ -70,7 +70,7 @@ static long cavos_syscall2(long number, long first, long second) {
 
 static long cavos_syscall3(long number, long first, long second, long third) {
   long result;
-  __asm__ volatile("syscall"
+  __asm__ __volatile__("syscall"
                    : "=a"(result)
                    : "a"(number), "D"(first), "S"(second), "d"(third)
                    : "rcx", "r11", "memory");
@@ -83,7 +83,7 @@ static long cavos_syscall6(long number, long first, long second, long third,
   register long r10 __asm__("r10") = fourth;
   register long r8 __asm__("r8") = fifth;
   register long r9 __asm__("r9") = sixth;
-  __asm__ volatile("syscall"
+  __asm__ __volatile__("syscall"
                    : "=a"(result)
                    : "a"(number), "D"(first), "S"(second), "d"(third),
                      "r"(r10), "r"(r8), "r"(r9)
@@ -757,3 +757,21 @@ _Noreturn void abort(void) {
   write_all(2, "abort\n", 6);
   exit(134);
 }
+
+// Every import of libc.dylib is emitted as a lazy binding, which makes lld
+// generate a stub helper that jumps through a "dyld_stub_binder" slot. The
+// helper is the only reason that name has to exist at all, and it is only ever
+// reached if an unpatched stub is called.
+//
+// It never runs on cavOS. The loader resolves lazy binds eagerly at load time,
+// the same way it resolves every other import, so the stubs are already patched
+// with final addresses before _start executes. This body only has to exist so
+// the link closes.
+//
+// The name is spelled out in asm because Mach-O prefixes C identifiers with an
+// underscore: a plain C definition here would be "_dyld_stub_binder", and lld
+// looks the symbol up under the exact spelling above.
+__asm__(".globl dyld_stub_binder\n"
+        "dyld_stub_binder:\n"
+        "  retq\n"
+        ".text\n");

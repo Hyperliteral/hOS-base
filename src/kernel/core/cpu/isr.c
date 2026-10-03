@@ -153,7 +153,7 @@ void handleTaskFault(AsmPassedInterrupt *regs) {
   }
   if (regs->interrupt == 14) {
     uint64_t err_pos;
-    asm volatile("movq %%cr2, %0" : "=r"(err_pos));
+    __asm__ __volatile__("movq %%cr2, %0" : "=r"(err_pos));
     debugf("[isr] Page fault occured at cr2{%lx} rip{%lx}\n", err_pos,
            regs->rip);
   }
@@ -192,7 +192,7 @@ void handle_interrupt(uint64_t rsp) {
     if (!tasksInitiated || !currentTask) {
       if (cpu->interrupt == 14) {
         uint64_t err_pos;
-        asm volatile("movq %%cr2, %0" : "=r"(err_pos));
+        __asm__ __volatile__("movq %%cr2, %0" : "=r"(err_pos));
         debugf("[isr] Early page fault at cr2{%lx} rip{%lx}\n", err_pos,
                cpu->rip);
       }
@@ -213,7 +213,7 @@ void handle_interrupt(uint64_t rsp) {
 
     if (cpu->interrupt == 14) {
       uint64_t err_pos;
-      asm volatile("movq %%cr2, %0" : "=r"(err_pos));
+      __asm__ __volatile__("movq %%cr2, %0" : "=r"(err_pos));
       debugf("[isr] Page fault occured at cr2{%lx} rip{%lx}\n", err_pos,
              cpu->rip);
     }

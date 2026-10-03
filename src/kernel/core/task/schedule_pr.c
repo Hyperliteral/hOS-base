@@ -112,13 +112,13 @@ void schedule(uint64_t rsp) {
   memcpy(&old->registers, cpu, sizeof(AsmPassedInterrupt));
 
   if (!old->kernel_task) {
-    asm volatile(" fxsave %0 " ::"m"(old->fpuenv));
-    asm("stmxcsr (%%rax)" : : "a"(&old->mxcsr));
+    __asm__ __volatile__(" fxsave %0 " ::"m"(old->fpuenv));
+    __asm__("stmxcsr (%%rax)" : : "a"(&old->mxcsr));
   }
 
   if (!next->kernel_task) {
-    asm volatile(" fxrstor %0 " ::"m"(next->fpuenv));
-    asm("ldmxcsr (%%rax)" : : "a"(&next->mxcsr));
+    __asm__ __volatile__(" fxrstor %0 " ::"m"(next->fpuenv));
+    __asm__("ldmxcsr (%%rax)" : : "a"(&next->mxcsr));
   }
 
   AsmPassedInterrupt *iretqRsp =

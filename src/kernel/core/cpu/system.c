@@ -10,7 +10,7 @@
 extern Framebuffer fb;
 
 void cpuid(uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
-  asm volatile("cpuid \n"
+  __asm__ __volatile__("cpuid \n"
                : "=a"(*eax), "=b"(*ebx), "=c"(*ecx), "=d"(*edx)
                : "a"(*eax), "c"(*ecx)
                : "memory");
@@ -86,7 +86,7 @@ void        initiateSSE() {
 
   // asm_enable_SSE();
   // enable SSE
-  asm volatile("mov %%cr0, %%rax;"
+  __asm__ __volatile__("mov %%cr0, %%rax;"
                       "and $0xFFFB, %%ax;"
                       "or  $2, %%eax;"
                       "mov %%rax, %%cr0;"
@@ -98,7 +98,7 @@ void        initiateSSE() {
                : "rax");
 
   // set NE in cr0 and reset x87 fpu
-  asm volatile("fninit;"
+  __asm__ __volatile__("fninit;"
                       "mov %%cr0, %%rax;"
                       "or $0b100000, %%rax;"
                       "mov %%rax, %%cr0;"
@@ -114,15 +114,15 @@ void        initiateSSE() {
   if (ecx & (1 << 26)) {
     debugf("[cpu] The xsave instruction is available. Enabling..\n");
     uint64_t cr4;
-    asm volatile("mov %%cr4, %0" : "=r"(cr4));
+    __asm__ __volatile__("mov %%cr4, %0" : "=r"(cr4));
     cr4 |= (uint32_t)1 << 18;
-    asm volatile("mov %0, %%cr4" : : "r"(cr4));
+    __asm__ __volatile__("mov %0, %%cr4" : : "r"(cr4));
 
     if (ecx & (1 << 28)) {
       debugf("[cpu] The AVX extensions are available. Enabling..\n");
       uint32_t xcr0_lo = 0x7; // x87 (bit 0), SSE (bit 1), AVX (bit 2)
       uint32_t xcr0_hi = 0;
-      asm volatile("xsetbv" ::"c"(0), "a"(xcr0_lo), "d"(xcr0_hi));
+      __asm__ __volatile__("xsetbv" ::"c"(0), "a"(xcr0_lo), "d"(xcr0_hi));
     }
   }
 
@@ -131,7 +131,7 @@ void        initiateSSE() {
 
 void panic() {
   debugf("[kernel] Kernel panic triggered!\n");
-  asm volatile("cli");
+  __asm__ __volatile__("cli");
 
   // If the framebuffer is initialized, override Xorg with a Red Screen of Death
   if (fb.virt != 0 && fb.width > 0 && fb.height > 0) {
@@ -210,7 +210,7 @@ void panic() {
   }
 
   while (true)
-    asm volatile("hlt");
+    __asm__ __volatile__("hlt");
 }
 
 void _assert(bool expression, char *file, int line) {
@@ -222,7 +222,7 @@ void _assert(bool expression, char *file, int line) {
 
 bool checkInterrupts(void) {
   uint64_t flags;
-  asm volatile("pushfq; popq %0" : "=r"(flags));
+  __asm__ __volatile__("pushfq; popq %0" : "=r"(flags));
   return (flags & (1ULL << 9)) != 0;
 }
 
@@ -266,7 +266,7 @@ void handControl() {
              currentTask->state);
     }
   }
-  asm volatile("int $0x81" ::: "memory");
+  __asm__ __volatile__("int $0x81" ::: "memory");
 }
 
 // Endianness

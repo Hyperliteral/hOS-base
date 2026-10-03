@@ -43,6 +43,8 @@ cd ../
 mkdir -p build
 cd build
 ../configure --target="$TARGET" --prefix="$PREFIX" --with-sysroot="$SYSROOT" --enable-shared
+# Upstream binutils is a GNU make project; bmake cannot build it, so GNU make
+# is used here on purpose.
 make -j$(nproc)
 make install
 cd ../../
@@ -61,6 +63,7 @@ cd ../
 mkdir -p build
 cd build
 ../configure --target="$TARGET" --prefix="$PREFIX" --enable-languages=c,c++ --with-sysroot="$SYSROOT" --enable-shared
+# GCC is likewise a GNU make project and is driven with GNU make on purpose.
 make all-gcc -j$(nproc)
 make all-target-libgcc -j$(nproc)
 make install-gcc

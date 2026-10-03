@@ -346,7 +346,7 @@ static size_t syscallWait4(int pid, int *wstatus, int options,
                options & WNOHANG, options & WUNTRACED, options & WSTOPPED,
                options & WEXITED, options & WCONTINUED, options & WNOWAIT);*/
 
-  asm volatile("sti");
+  __asm__ __volatile__("sti");
 
   // if nothing is on the side, then ensure we have something to wait() for
   if (!currentTask->childrenTerminatedAmnt) {

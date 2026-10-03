@@ -509,9 +509,9 @@ size_t poll(struct pollfd *fds, int nfds, int timeout) {
         continue;
       }
       // if (!fd->handlers->reportKey) {
-      //   asm volatile("cli");
+      //   __asm__ __volatile__("cli");
       //   while (1)
-      //     asm volatile("hlt");
+      //     __asm__ __volatile__("hlt");
       // }
       assert(fd->handlers->reportKey && fd->handlers->reportKey(fd));
       int revents = epollToPollComp(

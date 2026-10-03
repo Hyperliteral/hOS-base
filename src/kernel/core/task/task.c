@@ -61,7 +61,7 @@ Task *taskListAllocate() {
   spinlockCntWriteAcquire(&TASK_LL_MODIFY);
   Task *target = (Task *)malloc(sizeof(Task));
   memset(target, 0, sizeof(Task)); // TASK_STATE_DEAD is 0 too
-  asm volatile("cli");
+  __asm__ __volatile__("cli");
   Task *browse = firstTask;
   while (browse) {
     if (!browse->next)
@@ -71,7 +71,7 @@ Task *taskListAllocate() {
 
   assert(browse);
   browse->next = target;
-  asm volatile("sti");
+  __asm__ __volatile__("sti");
   spinlockCntWriteRelease(&TASK_LL_MODIFY);
   return target;
 }
@@ -79,7 +79,7 @@ Task *taskListAllocate() {
 // will NEVER be the first one
 void taskListDestroy(Task *target) {
   spinlockCntWriteAcquire(&TASK_LL_MODIFY);
-  asm volatile("cli");
+  __asm__ __volatile__("cli");
   Task *prev = firstTask;
   while (prev) {
     if (prev->next == target)
@@ -89,7 +89,7 @@ void taskListDestroy(Task *target) {
   assert(prev);
 
   prev->next = target->next;
-  asm volatile("sti");
+  __asm__ __volatile__("sti");
   spinlockCntWriteRelease(&TASK_LL_MODIFY);
   free(target); // finally, destroy it
 }
@@ -275,7 +275,7 @@ void taskKill(uint32_t id, uint16_t ret) {
   if (currentTask == task) {
     // we're most likely in a syscall context, so...
     // taskKillCleanup(task); // left for sched
-    asm volatile("sti");
+    __asm__ __volatile__("sti");
     // wait until we're outta here
     while (1) {
       //   debugf("GET ME OUT ");
@@ -489,8 +489,8 @@ Task *taskFork(AsmPassedInterrupt *cpu, uint64_t rsp, int cloneFlags,
   target->registers.usermode_ss = GDT_USER_DATA | DPL_USER;
 
   // since the scheduler, our fpu state might've changed
-  asm volatile(" fxsave %0 " ::"m"(currentTask->fpuenv));
-  asm("stmxcsr (%%rax)" : : "a"(&currentTask->mxcsr));
+  __asm__ __volatile__(" fxsave %0 " ::"m"(currentTask->fpuenv));
+  __asm__("stmxcsr (%%rax)" : : "a"(&currentTask->mxcsr));
 
   // yk
   target->parent = currentTask;
@@ -516,7 +516,7 @@ void taskSpinlockExit(Task *task, Spinlock *lock) {
 
 void kernelDummyEntry() {
   while (true)
-    asm volatile("pause");
+    __asm__ __volatile__("pause");
 }
 
 void initiateTasks() {

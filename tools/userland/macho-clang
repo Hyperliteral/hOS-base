@@ -3,8 +3,24 @@ set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 COMPILER=${MACHO_CLANG:-clang}
-LIBRARY="$ROOT/src/libs/macho/libmacho.a"
-COMMON_FLAGS="--target=x86_64-apple-darwin -fuse-ld=lld -std=gnu17 -ffreestanding -fno-builtin -fno-stack-protector -fno-pic -fno-pie -fno-omit-frame-pointer -fno-lto -nostdlib -nostartfiles -isystem $ROOT/src/libs/macho -isystem $ROOT/target/usr/include -Wl,-arch,x86_64 -Wl,-platform_version,macos,10.4,10.4 -Wl,-no_pie -Wl,-e,__start"
+
+# Two separate pieces now, and they are joined at runtime rather than at link
+# time:
+#
+#   libmacho.a  the entry stub only (crt0). Linked in directly, because a dylib
+#               cannot supply LC_MAIN - the kernel jumps into the executable.
+#   libc.dylib  malloc/stdio/string/syscall stubs. NOT linked in. It is named on
+#               the link line so lld records an LC_LOAD_DYLIB for it and emits
+#               bind opcodes; the kernel loader resolves those against the
+#               dylib's export trie before _start runs.
+#
+# That is the whole point of the split: with libc statically linked there is
+# nothing to resolve and the dynamic linking path is never exercised.
+STARTUP="$ROOT/src/libs/macho/libmacho.a"
+LIBC="$ROOT/src/libs/libc/libc.dylib"
+LIBC_DIR="$ROOT/src/libs/libc"
+
+COMMON_FLAGS="--target=x86_64-apple-darwin -fuse-ld=lld -std=gnu17 -ffreestanding -fno-builtin -fno-stack-protector -fno-pic -fno-pie -fno-omit-frame-pointer -fno-lto -nostdlib -nostartfiles -isystem $LIBC_DIR -isystem $ROOT/target/usr/include -Wl,-arch,x86_64 -Wl,-platform_version,macos,10.4,10.4 -Wl,-no_pie -Wl,-e,__start"
 LINK_ONLY=0
 
 for argument in "$@"; do
@@ -19,9 +35,14 @@ if [ "$LINK_ONLY" -eq 1 ]; then
   exec "$COMPILER" $COMMON_FLAGS "$@"
 fi
 
-if [ ! -f "$LIBRARY" ]; then
-  printf '%s\n' "macho-clang: build $LIBRARY first with make -C src/libs/macho" >&2
-  exit 1
-fi
+for library in "$STARTUP" "$LIBC"; do
+  if [ ! -f "$library" ]; then
+    printf '%s\n' "macho-clang: build $library first (bmake macho libc)" >&2
+    exit 1
+  fi
+done
 
-exec "$COMPILER" $COMMON_FLAGS "$@" "$LIBRARY"
+# -L before -l matters only for readability; what actually makes libc.dylib a
+# runtime dependency is that lld records the LC_LOAD_DYLIB and generates the
+# import stubs, not that the archive is on the line.
+exec "$COMPILER" $COMMON_FLAGS "$@" -L"$LIBC_DIR" -lc "$STARTUP"

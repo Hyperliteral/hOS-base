@@ -1,4 +1,4 @@
-#include <macho.h>
+#include <libc.h>
 
 int main(int argc, char **argv) {
   const char *value = getenv("MACHO_TEST");

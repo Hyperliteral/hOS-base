@@ -20,7 +20,7 @@ size_t readHandler(OpenFile *fd, uint8_t *in, size_t limit) {
 
   // start reading
   kbTaskRead(currentTask->id, (char *)kernelBuff, limit, true);
-  asm volatile("sti"); // leave this task/execution (awaiting return)
+  __asm__ __volatile__("sti"); // leave this task/execution (awaiting return)
   while (currentTask->state == TASK_STATE_WAITING_INPUT) {
     handControl();
   }
