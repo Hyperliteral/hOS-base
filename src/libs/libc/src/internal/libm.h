@@ -15,6 +15,16 @@
 /* No fp_arch.h: the generic (empty) arch header applies, so the
    libm.h defaults below stand. */
 
+#if defined(__APPLE__) || defined(__MACH__)
+#define weak_alias(old, new) \
+    __asm__(".globl _" #new "\n" \
+            ".weak_definition _" #new "\n" \
+            ".set _" #new ", _" #old)
+#else
+#define weak_alias(old, new) \
+    extern __typeof(old) new __attribute__((__weak__, __alias__(#old)))
+#endif
+
 #if LDBL_MANT_DIG == 53 && LDBL_MAX_EXP == 1024
 #elif LDBL_MANT_DIG == 64 && LDBL_MAX_EXP == 16384 && __BYTE_ORDER == __LITTLE_ENDIAN
 union ldshape {

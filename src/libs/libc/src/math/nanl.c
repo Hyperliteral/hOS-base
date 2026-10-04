@@ -2,5 +2,7 @@
 
 long double nanl(const char *s)
 {
-	return NAN;
+	// posix. dont remove s
+    (void)s;
+    return NAN;
 }
