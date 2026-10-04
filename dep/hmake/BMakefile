@@ -1,0 +1,132 @@
+# hmake - the cavOS fork of bmake.
+#
+# Makefile-only build: no ./configure, no boot-strap, no generated files.
+# Everything the build needs is defined right here; the feature answers that
+# configure used to detect live in the checked-in config.h (Linux/glibc).
+#
+# This is a BSD makefile, like the rest of the repo. Build it with an
+# installed bmake/hmake (GNU make cannot parse this syntax):
+#
+#   bmake -f BMakefile          # builds ./hmake (run from dep/hmake)
+#   ./hmake -f BMakefile        # self-hosted rebuild once it exists
+#   sudo bmake -f BMakefile install   # installs binary + mk macros + man page
+#
+# All settings are defined here; `bmake CC=clang` on the command line still
+# overrides them.
+
+PROG     = hmake
+CC       = cc
+CFLAGS   = -g -O2
+LDFLAGS  =
+PREFIX   = /usr/local
+
+# Feature answers for this build. Linux/glibc provides everything except
+# stresep(3), hence the two compat objects at the end of OBJS.
+CPPFLAGS = -I. -DMAKE_NATIVE -DHAVE_CONFIG_H -DUSE_META
+
+# Platform identity, baked in the same way boot-strap used to do it.
+# Upstream mapped these through machine.sh to NetBSD names; plain uname
+# output is fine for a Linux build tool and can be overridden per platform.
+.ifndef MACHINE
+MACHINE != uname -m
+.endif
+.ifndef MACHINE_ARCH
+MACHINE_ARCH = ${MACHINE}
+.endif
+.ifndef MAKE_OS
+MAKE_OS != uname -s
+.endif
+
+MAKE_VERSION != sed -n 's/^_MAKE_VERSION=//p' VERSION
+
+DEFSYSPATH = ${PREFIX}/share/mk
+
+MAIN_DEFS = \
+	-DMAKE_VERSION=\"${MAKE_VERSION}\" \
+	-DMACHINE=\"${MACHINE}\" \
+	-DMACHINE_ARCH=\"${MACHINE_ARCH}\" \
+	-DMAKE_OS=\"${MAKE_OS}\" \
+	-D_PATH_DEFSYSPATH=\"${DEFSYSPATH}\" \
+	-DMAKE_SAVE_DOLLARS_DEFAULT=\"no\" \
+	-DBMAKE_PATH_MAX=1024
+
+OBJS = \
+	arch.o \
+	buf.o \
+	compat.o \
+	cond.o \
+	dir.o \
+	for.o \
+	hash.o \
+	job.o \
+	lst.o \
+	main.o \
+	make.o \
+	make_malloc.o \
+	meta.o \
+	metachar.o \
+	parse.o \
+	sigcompat.o \
+	stresep.o \
+	str.o \
+	suff.o \
+	targ.o \
+	trace.o \
+	util.o \
+	var.o
+
+.SUFFIXES: .o .c
+
+# Default goal comes before any object rule: bmake builds the first explicit
+# target it sees, so `all` (and the link) must precede the compilation rules.
+.PHONY: all clean install test
+
+all: ${PROG}
+
+${PROG}: ${OBJS}
+	${CC} ${LDFLAGS} -o ${.TARGET} ${OBJS}
+
+.c.o:
+	${CC} ${CPPFLAGS} ${CFLAGS} -c -o ${.TARGET} ${.IMPSRC}
+
+# main.o, job.o and meta.o carry the platform defines, exactly as the old
+# boot-strap script compiled them; explicit rules win over the suffix rule.
+main.o: main.c VERSION
+	${CC} ${CPPFLAGS} ${CFLAGS} ${MAIN_DEFS} -c -o ${.TARGET} ${.IMPSRC}
+
+job.o: job.c
+	${CC} ${CPPFLAGS} ${CFLAGS} ${MAIN_DEFS} -c -o ${.TARGET} ${.IMPSRC}
+
+meta.o: meta.c
+	${CC} ${CPPFLAGS} ${CFLAGS} ${MAIN_DEFS} -c -o ${.TARGET} ${.IMPSRC}
+
+clean:
+	rm -f ${PROG} ${OBJS}
+
+install: ${PROG}
+	install -d ${DESTDIR}${PREFIX}/bin
+	install -m 755 ${PROG} ${DESTDIR}${PREFIX}/bin/${PROG}
+	install -d ${DESTDIR}${PREFIX}/share/mk
+	cp -r mk/. ${DESTDIR}${PREFIX}/share/mk/
+	install -d ${DESTDIR}${PREFIX}/share/man/man1
+	install -m 644 hmake.1 ${DESTDIR}${PREFIX}/share/man/man1/hmake.1
+
+# Upstream's regression suite. unit-tests/Makefile.config used to be stamped
+# out by configure from Makefile.config.in; the same substitution happens
+# here so the suite runs Makefile-only. Four tests (cmdline, meta-output,
+# objdir-writable, varname-empty) fail in containers as root - the pristine
+# upstream tree fails them identically, so that is environmental, not a fork
+# regression.
+.if defined(TESTS)
+TEST_ARG = TESTS="${TESTS}"
+.endif
+
+test: ${PROG}
+	sed -e 's/@diff_u@/-u/' \
+	    -e 's/@egrep@/grep -E/' \
+	    -e 's/@lua@//' \
+	    -e 's/@diff@/diff/' \
+	    -e 's/@UTC_1@/Europe\/Berlin/' \
+	    -e 's|@srcdir@|${.CURDIR}/unit-tests|' \
+	    unit-tests/Makefile.config.in > unit-tests/Makefile.config
+	cd unit-tests && MAKEFLAGS= ./../${PROG} -r -m / test ${TEST_ARG}

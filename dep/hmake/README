@@ -8,13 +8,15 @@ configure step, and targets Linux hosts.
 Building
 ========
 
-No configure, no boot-strap. GNU make builds it directly::
+No configure, no boot-strap. An installed bmake builds it directly
+(GNU make cannot parse BSD makefile syntax)::
 
-	make			# builds ./hmake in this directory
-	sudo make install	# installs hmake, the mk macros and the man page
-				# under /usr/local (override with PREFIX=)
+	bmake -f BMakefile	# builds ./hmake in this directory
+	sudo bmake -f BMakefile install	# installs hmake, the mk macros and
+				# the man page under /usr/local
+				# (override with PREFIX=)
 
-Everything the build needs is defined in GNUmakefile (CC, CFLAGS, ...);
+Everything the build needs is defined in BMakefile (CC, CFLAGS, ...);
 the Linux/glibc feature answers configure used to detect live in the
 checked-in config.h. Porting to a new host means adjusting config.h by
 hand - see the note at its top.
