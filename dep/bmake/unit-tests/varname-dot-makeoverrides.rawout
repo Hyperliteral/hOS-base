@@ -1,7 +1,0 @@
-all: overrides=<>
-/home/paul/hOS-base/dep/bmake/bmake -f varname-dot-makeoverrides.mk stage_1 VAR=value
-stage_1: overrides=< VAR>
-/home/paul/hOS-base/dep/bmake/bmake -f varname-dot-makeoverrides.mk stage_2 .VAR=too
-stage_2: overrides=< VAR .VAR>
-/home/paul/hOS-base/dep/bmake/bmake -f varname-dot-makeoverrides.mk stage_3
-stage_3: overrides=< .VAR VAR>

@@ -1,3 +1,0 @@
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/var-scope-cmdline.mk:72: global
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/var-scope-cmdline.mk:82: makeflags
-makeflags

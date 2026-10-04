@@ -8,7 +8,7 @@ userspace from one source tree:
 | `mho`  | `libc.dylib`| Mach-O binaries (dynamic)  |
 | `elf`  | `libc.so`   | ELF binaries (dynamic)     |
 
-With no arguments (`bmake`, `bmake all`, `bmake compile`) both are built.
+With no arguments (`hmake`, `hmake all`, `hmake compile`) both are built.
 
 ```
 src/libs/libc/
@@ -39,7 +39,7 @@ Anything that compiles against musl headers should compile against
   (`src/libs/musl/cavos-out/include`, i.e. `include/` + `arch/generic` +
   `arch/x86_64` bits + generated `alltypes.h`/`syscall.h`). Signatures are
   therefore musl's: `ssize_t read(...)`, `off_t lseek(...)`, `int brk(void*)`,
-  .... To regenerate after a musl bump: rebuild `bmake musl`, then copy
+  .... To regenerate after a musl bump: rebuild `hmake musl`, then copy
   `src/libs/musl/cavos-out/include/` over `include/` (keeping `libc.h`).
 - **Syscall numbers** come from the vendored `<sys/syscall.h>` and match the
   kernel's Linux-compatible table, so the same wrapper sources serve ELF and
@@ -72,7 +72,7 @@ Two musl idioms cannot survive the Mach-O half, and are adapted:
 
 ## Install note
 
-`bmake install` copies both libraries to `target/lib/` and merges the headers
+`hmake install` copies both libraries to `target/lib/` and merges the headers
 into `target/usr/include/`. The disk flow intentionally does *not* install:
 `target/lib` precedes `target/usr/lib` on the ELF `-lc` search path, so an
 installed `libc.so` would shadow musl's full libc for ports. Install only for

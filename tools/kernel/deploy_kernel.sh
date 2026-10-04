@@ -19,7 +19,7 @@ trap 'rm -rf "${WORK}"' EXIT
 
 KERNEL="${TOP}/target/boot/kernel.elf"
 if [ ! -f "${KERNEL}" ]; then
-    echo "deploy: no kernel at ${KERNEL}; run 'bmake kernel' first" >&2
+    echo "deploy: no kernel at ${KERNEL}; run 'hmake kernel' first" >&2
     exit 1
 fi
 

@@ -1,4 +1,0 @@
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varname-dot-parsefile.mk:32: At this point, .PARSEFILE is undefined.
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/fake-parsefile:38: The location can be faked in some cases.
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varname-dot-parsefile.mk:43: The location is no longer fake.
-At run time, .PARSEFILE is undefined.

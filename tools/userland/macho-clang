@@ -35,7 +35,7 @@ fi
 if [ "$USE_LIBC" -eq 1 ]; then
   for library in "$STARTUP" "$LIBC"; do
     if [ ! -f "$library" ]; then
-      printf '%s\n' "macho-clang: build $library first (bmake macho libc)" >&2
+      printf '%s\n' "macho-clang: build $library first (hmake macho libc)" >&2
       exit 1
     fi
   done

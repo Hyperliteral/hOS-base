@@ -77,7 +77,7 @@ CFLAGS_VENDORED_ELF = ${CFLAGS_ELF} -Wno-sign-compare
 
 .PHONY: all mho elf compile install clean
 
-# Default target does both: `bmake` with no arguments builds libc.dylib and
+# Default target does both: `hmake` with no arguments builds libc.dylib and
 # libc.so from the same sources.
 all: mho elf
 

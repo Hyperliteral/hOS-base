@@ -1,4 +1,4 @@
-# Anchor absolute paths for bmake compatibility with GNU Make sub-makefiles
+# Anchor absolute paths for hmake compatibility with GNU Make sub-makefiles
 CURDIR ?= ${.CURDIR}
 TOPDIR ?= ${.CURDIR}
 .export CURDIR TOPDIR

@@ -1,0 +1,63 @@
+			       hmake
+			       *****
+
+This directory contains hmake, the cavOS fork of the BSD make tool
+(from NetBSD bmake). The fork is renamed, builds Makefile-only with no
+configure step, and targets Linux hosts.
+
+Building
+========
+
+No configure, no boot-strap. GNU make builds it directly::
+
+	make			# builds ./hmake in this directory
+	sudo make install	# installs hmake, the mk macros and the man page
+				# under /usr/local (override with PREFIX=)
+
+Everything the build needs is defined in GNUmakefile (CC, CFLAGS, ...);
+the Linux/glibc feature answers configure used to detect live in the
+checked-in config.h. Porting to a new host means adjusting config.h by
+hand - see the note at its top.
+
+The historical upstream build notes are kept below for reference.
+Upstream preferred bootstrapping via::
+
+	./bmake/boot-strap
+
+there are a number of args - most of which get passed to configure,
+eg.
+::
+
+	./bmake/boot-strap --prefix=/opt
+
+see the boot-strap script for details.
+
+For folk that hate to read anything, since 20121212 you can also use
+the GNU standard process of::
+
+	./configure; make; make install
+
+This will *not* work on Darwin or any other system with a case
+insensitive filesystem.  It depends on a generated ``makefile`` which
+is disabled by default on Darwin.
+
+To make much use of bmake you will need the bsd.*.mk macros or my
+portable *.mk macros which are included with bmake since 20121212
+and separately available from
+https://www.crufty.net/ftp/pub/sjg/mk.tar.gz
+both that and
+https://www.crufty.net/ftp/pub/sjg/bmake.tar.gz
+will be links to the latest versions.
+
+Porting
+=======
+
+If you encounter a system that bmake does not build or work on *out of
+the box*, I welcome patches.
+Even a report of unit tests which fail is appreciated.
+If you can provide access to a suitable machine - even better.
+
+More info can be found at https://www.crufty.net/help/sjg/bmake.htm
+
+--sjg <sjg@crufty.net>
+

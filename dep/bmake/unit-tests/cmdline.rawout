@@ -1,7 +1,0 @@
-makeobjdir-direct:
-show-objdir: /home/paul/hOS-base/dep/bmake/unit-tests
-makeobjdir-indirect:
-show-objdir: /home/paul/hOS-base/dep/bmake/unit-tests
-space-and-comment:
-value # no comment $
-value # no comment $

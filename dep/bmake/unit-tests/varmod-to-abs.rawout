@@ -1,4 +1,0 @@
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-to-abs.mk:19: does-not-exist.c
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-to-abs.mk:21: does-not-exist.c
-cached_realpath: varmod-to-abs.mk -> /home/paul/hOS-base/dep/bmake/unit-tests/varmod-to-abs.mk
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-to-abs.mk:26: /home/paul/hOS-base/dep/bmake/unit-tests/varmod-to-abs.mk

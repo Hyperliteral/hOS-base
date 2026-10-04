@@ -1,4 +1,0 @@
-: 'Making existing-target out of nothing.'
-bmake: don't know how to make nonexistent-target (continuing)
-
-bmake: stopped making "all" in /home/paul/hOS-base/dep/bmake/unit-tests

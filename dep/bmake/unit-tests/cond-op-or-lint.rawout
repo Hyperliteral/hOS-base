@@ -1,3 +1,0 @@
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/cond-op-or-lint.mk:10: Unknown operator "|"
-bmake: Fatal errors encountered -- cannot continue
-bmake: stopped in /home/paul/hOS-base/dep/bmake/unit-tests

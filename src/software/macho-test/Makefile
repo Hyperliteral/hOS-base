@@ -6,7 +6,7 @@ TARGET = ${TOPDIR}/target/usr/bin/
 CFLAGS = -Wall -Wextra -Werror
 
 # Anchor to TOPDIR (exported by the root makefile), with a fallback for
-# running bmake directly from this directory.
+# running hmake directly from this directory.
 TOPDIR ?= ${.CURDIR}/../../..
 
 .PHONY: all runtime compile install clean

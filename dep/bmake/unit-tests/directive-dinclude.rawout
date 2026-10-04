@@ -1,4 +1,0 @@
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-dinclude-error.inc:1: Invalid line "syntax error"
-	in /home/paul/hOS-base/dep/bmake/unit-tests/directive-dinclude.mk:21
-bmake: Fatal errors encountered -- cannot continue
-bmake: stopped making "all" in /home/paul/hOS-base/dep/bmake/unit-tests

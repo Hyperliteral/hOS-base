@@ -26,7 +26,7 @@ build_package() {
 	cd "$package_name-$version"
 	./configure --prefix="$install_dir"
 	# Upstream automake/autoconf ship GNU make build systems; we drive them with
-	# GNU make rather than bmake, which cannot parse them.
+	# GNU make rather than hmake, which cannot parse them.
 	make
 	make install
 	cd ..

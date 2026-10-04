@@ -1,9 +1,0 @@
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-lines.mk:31: This is line 31.
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-lines.mk:31: This is line 31.
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-lines.mk:38: This is line 38.
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-lines.mk:31: This is line 31.
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-lines.mk:31: This is line 31.
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-lines.mk:38: This is line 38.
-bmake: no target to make.
-
-bmake: stopped in /home/paul/hOS-base/dep/bmake/unit-tests

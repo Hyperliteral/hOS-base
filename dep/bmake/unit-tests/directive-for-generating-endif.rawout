@@ -1,9 +1,0 @@
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-generating-endif.mk:24: if-less endif
-	in .for loop from /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-generating-endif.mk:20 with i = 3
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-generating-endif.mk:24: if-less endif
-	in .for loop from /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-generating-endif.mk:20 with i = 2
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-generating-endif.mk:24: if-less endif
-	in .for loop from /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-generating-endif.mk:20 with i = 1
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/directive-for-generating-endif.mk:30: 3 open conditionals
-bmake: Fatal errors encountered -- cannot continue
-bmake: stopped making "all" in /home/paul/hOS-base/dep/bmake/unit-tests

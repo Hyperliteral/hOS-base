@@ -1,3 +1,0 @@
-bmake: /home/paul/hOS-base/dep/bmake/unit-tests/dep-colon-bug-cross-file.mk:32: warning: duplicate script for target "all" ignored
-bmake: dep-colon-bug-cross-file.mk:42: warning: using previous script for "all" defined here
-: pass 1

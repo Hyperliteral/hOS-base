@@ -47,7 +47,7 @@ build_package_autotools() {
 	# Compilation itself
 	../configure --prefix="$install_dir" --host=x86_64-cavos $extra_parameters
 	# Autotools packages ship GNU make build systems, so GNU make is used here
-	# on purpose rather than bmake.
+	# on purpose rather than hmake.
 	make -j$(nproc)
 	if [ -n "$extra_install_parameters" ]; then
 		make install $extra_install_parameters

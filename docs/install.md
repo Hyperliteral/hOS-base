@@ -24,7 +24,7 @@ If everything else fails, you got [distrobox](https://github.com/89luca89/distro
 
 ## Dependencies: BSD
 BSD should work, dependencies are cut out specifically for ease of use especially on BSD,
-such as the migration to bmake which is natively used to ship and build most BSDs. (talking about netbsd's bmake, not fmake, not pmake.).
+such as the migration to hmake which is natively used to ship and build most BSDs. (talking about netbsd's bmake, not fmake, not pmake.).
 
 - **FreeBSD:** `sudo pkg install nasm dosfstools bison flex gmp mpc mpfr texinfo isl autoconf automake wget clang llvm lld`
 - **DragonflyBSD:** `sudo pkg install nasm dosfstools bison flex gmp mpc mpfr texinfo isl autoconf automake wget clang llvm lld`
@@ -50,10 +50,10 @@ This is an operating system, meaning that it has to be burnt into some sort of m
 > **Warning!** In case you want to try cavOS on real hardware, while nobody is liable for any damage it might cause, many features might not be available due to a lack of drivers!
 
 For building there are two options (although the second is mostly geared towards developers/tinkerers):
-- **Build disk.img, a fully featured pack of the OS that includes Limine, the kernel and any software: `bmake disk`.**
-- Build only the kernel.elf file, the HNU kernel: `bmake kernel`.
+- **Build disk.img, a fully featured pack of the OS that includes Limine, the kernel and any software: `hmake disk`.**
+- Build only the kernel.elf file, the HNU kernel: `hmake kernel`.
 
 ## Testing
-- **QEMU:** `bmake qemu` will launch QEMU with the recommended options on the `disk.img` disk image.
-- **VMware products:** `bmake vmware` will convert `disk.img` -> `disk.vmdk`.
+- **QEMU:** `hmake qemu` will launch QEMU with the recommended options on the `disk.img` disk image.
+- **VMware products:** `hmake vmware` will convert `disk.img` -> `disk.vmdk`.
 - **VirtualBox:** can handle the `disk.vmdk` file, so you can use the same disk image as VMware.

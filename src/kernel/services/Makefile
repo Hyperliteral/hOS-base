@@ -52,7 +52,7 @@ all: ${TARGET}
 ${TARGET}: ${C_OBJS} ${ASM_OBJS}
 	${AR} rcs ${.TARGET} ${.ALLSRC}
 
-# bmake has no %.o: %.c pattern rules, so generate one explicit rule per file.
+# hmake has no %\.o: %\.c pattern rules, so generate one explicit rule per file.
 .for src in ${C_SOURCES}
 ${src:R}.o: ${src}
 	${COMPILER} ${CFLAGS} ${src} -o ${.TARGET}

@@ -2,7 +2,7 @@
 # Deploy-only helper: push host-built userspace binaries into the existing
 # disk.img *without* needing sudo or a loop mount.
 #
-# target/lib and target/usr are root-owned, so `bmake disk` needs sudo to
+# target/lib and target/usr are root-owned, so `hmake disk` needs sudo to
 # refresh them. When iterating on a kernel/userspace bug this splices files
 # straight into the ext4 partition instead, editing the partition image with
 # debugfs and writing it back with dd - neither of which need privileges.

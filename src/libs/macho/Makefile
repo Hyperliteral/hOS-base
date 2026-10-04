@@ -3,7 +3,7 @@ ARCHIVER ?= llvm-ar
 TARGET_TRIPLE = x86_64-none-macho
 
 # Anchor to TOPDIR (exported by the root makefile), with a fallback for
-# running bmake directly from this directory.
+# running hmake directly from this directory.
 TOPDIR ?= ${.CURDIR}/../../..
 SYSROOT = ${TOPDIR}/target
 LIBDIR = ${SYSROOT}/usr/lib

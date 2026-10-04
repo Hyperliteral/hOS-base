@@ -1,0 +1,46 @@
+# hmake build outputs. `make -C dep/hmake` builds ./hmake in-tree;
+# none of this is source and none of it should ever be staged.
+# (This used to happen with unit-tests/*.rawout/*.status - 798 tracked
+# test outputs. If it happens again, `git rm` them, don't commit them.)
+
+# Binaries (the hmake we build, plus the old bmake name for safety)
+/hmake
+/bmake
+
+# Objects, dependency files, static libs
+*.o
+*.d
+*.a
+
+# Stale configure-time leftovers (there is no configure anymore, but a stray
+# run of ancient scripts - or unpacking an upstream tarball over this dir -
+# must never pollute the tree)
+/config.log
+/config.status
+/config.cache
+/autom4te.cache/
+/Makefile.config
+/make-bootstrap.sh
+/Linux/
+/Darwin/
+/FreeBSD/
+/NetBSD/
+/OpenBSD/
+
+# Generated man/cat pages (hmake.1 itself is a static source file and stays
+# tracked; anything generated next to it does not)
+*.cat1
+my.history
+
+# Unit test run outputs (.mk/.exp are test inputs and stay tracked)
+unit-tests/*.out
+unit-tests/*.rawout
+unit-tests/*.status
+unit-tests/*.tmp
+unit-tests/obj/
+
+# Editor and OS junk
+*~
+*.swp
+.DS_Store
+unit-tests/Makefile.config

@@ -43,7 +43,7 @@ cd ../
 mkdir -p build
 cd build
 ../configure --target="$TARGET" --prefix="$PREFIX" --with-sysroot="$SYSROOT" --enable-shared
-# Upstream binutils is a GNU make project; bmake cannot build it, so GNU make
+# Upstream binutils is a GNU make project; hmake cannot build it, so GNU make
 # is used here on purpose.
 make -j$(nproc)
 make install
