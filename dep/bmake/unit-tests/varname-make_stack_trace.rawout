@@ -37,8 +37,8 @@ bmake[2]: Unknown modifier ":Z"
 *** [enabled-parallel] Error code 2
 
 bmake[1]: stopped making "enabled-parallel" in /home/paul/hOS-base/dep/bmake/unit-tests
-.make76596[5]: warning: Invalid internal option "-J" in "/home/paul/hOS-base/dep/bmake/unit-tests"; see the manual page
-	in .make76596[5] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
+.make63239[5]: warning: Invalid internal option "-J" in "/home/paul/hOS-base/dep/bmake/unit-tests"; see the manual page
+	in .make63239[5] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
 	in target "multi-stage-4" from varname-make_stack_trace.mk:56
 	in bmake[4] in directory "/home/paul/hOS-base/dep/bmake/unit-tests"
 	in target "multi-stage-3" from varname-make_stack_trace.mk:54

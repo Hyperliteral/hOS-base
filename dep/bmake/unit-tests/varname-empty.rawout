@@ -1,7 +1,6 @@
 Command: ignoring ' = cmdline-u' as the variable name '${:U}' expands to empty
 Command: ignoring ' = cmdline-plain' as the variable name '' expands to empty
 Global: .CURDIR = /home/paul/hOS-base/dep/bmake/unit-tests
-Var_Parse: ${MAKE_OBJDIR_CHECK_WRITABLE} (eval)
 Global: .OBJDIR = /home/paul/hOS-base/dep/bmake/unit-tests
 Global: ignoring delete '.PATH' as it is not found
 Global: .PATH = .

@@ -1,6 +1,6 @@
 job_pipe -1 -1, maxjobs 1, tokens 1, compat 0
-TokenPool_Take: pid 72291, aborting NONE, running 0
-TokenPool_Take: pid 72291 took a token
+TokenPool_Take: pid 58929, aborting NONE, running 0
+TokenPool_Take: pid 58929 took a token
 MaybeSubMake: Looking for "/home/paul/hOS-base/dep/bmake/bmake"
 # echo off
 echo silent
@@ -17,13 +17,13 @@ set -e
 echo always
 Running all
 	Command: sh
-JobExec: target all, pid 72292 added to jobs table
+JobExec: target all, pid 58930 added to jobs table
 job started, job table:
-job 0, status running, flags ---, pid 72292
+job 0, status running, flags ---, pid 58930
 silent
 ignerr
 always
-Process with pid 72292 exited/stopped with status 0.
-JobFinish: target all, pid 72292, status 0
-TokenPool_Take: pid 72291, aborting NONE, running 0
-TokenPool_Take: pid 72291 took a token
+Process with pid 58930 exited/stopped with status 0.
+JobFinish: target all, pid 58930, status 0
+TokenPool_Take: pid 58929, aborting NONE, running 0
+TokenPool_Take: pid 58929 took a token

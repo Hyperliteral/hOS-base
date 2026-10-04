@@ -9,7 +9,7 @@
 # .MAIN, made, type OP_DEPENDS|OP_PHONY, flags REMAKE|CHILDMADE|FORCE|DONE_WAIT|DONE_ALLSRC
 #
 # No unmade children
-# last modified 20:29:51 Oct 02, 2026: made
+# last modified 01:53:25 Oct 04, 2026: made
 .MAIN           : all
 
 
@@ -17,7 +17,7 @@
 #
 # *** MAIN TARGET ***
 # No unmade children
-# last modified 20:29:51 Oct 02, 2026: made
+# last modified 01:53:25 Oct 04, 2026: made
 # parents: .MAIN
 all             : makeinfo make-index braces-dot braces-no-dot braces-no-dot-modifier parentheses-dot parentheses-no-dot
 
@@ -25,7 +25,7 @@ all             : makeinfo make-index braces-dot braces-no-dot braces-no-dot-mod
 # makeinfo, made, type OP_DEPENDS|OP_HAS_COMMANDS|OP_DEPS_FOUND|OP_MARK, flags REMAKE|DONE_WAIT|DONE_ALLSRC|DONE_SUBMAKE
 #
 # No unmade children
-# last modified 20:29:51 Oct 02, 2026: made
+# last modified 01:53:25 Oct 04, 2026: made
 # parents: all
 makeinfo        :
 	: makeinfo submake
@@ -34,7 +34,7 @@ makeinfo        :
 # make-index, made, type OP_DEPENDS|OP_HAS_COMMANDS|OP_DEPS_FOUND|OP_MARK, flags REMAKE|DONE_WAIT|DONE_ALLSRC|DONE_SUBMAKE
 #
 # No unmade children
-# last modified 20:29:51 Oct 02, 2026: made
+# last modified 01:53:25 Oct 04, 2026: made
 # parents: all
 make-index      :
 	: make-index
@@ -43,7 +43,7 @@ make-index      :
 # braces-dot, made, type OP_DEPENDS|OP_SUBMAKE|OP_HAS_COMMANDS|OP_DEPS_FOUND|OP_MARK, flags REMAKE|DONE_WAIT|DONE_ALLSRC|DONE_SUBMAKE
 #
 # No unmade children
-# last modified 20:29:51 Oct 02, 2026: made
+# last modified 01:53:25 Oct 04, 2026: made
 # parents: all
 braces-dot      :
 	: ${.MAKE}
@@ -52,7 +52,7 @@ braces-dot      :
 # braces-no-dot, made, type OP_DEPENDS|OP_SUBMAKE|OP_HAS_COMMANDS|OP_DEPS_FOUND|OP_MARK, flags REMAKE|DONE_WAIT|DONE_ALLSRC|DONE_SUBMAKE
 #
 # No unmade children
-# last modified 20:29:51 Oct 02, 2026: made
+# last modified 01:53:25 Oct 04, 2026: made
 # parents: all
 braces-no-dot   :
 	: ${MAKE}
@@ -61,7 +61,7 @@ braces-no-dot   :
 # braces-no-dot-modifier, made, type OP_DEPENDS|OP_SUBMAKE|OP_HAS_COMMANDS|OP_DEPS_FOUND|OP_MARK, flags REMAKE|DONE_WAIT|DONE_ALLSRC|DONE_SUBMAKE
 #
 # No unmade children
-# last modified 20:29:51 Oct 02, 2026: made
+# last modified 01:53:25 Oct 04, 2026: made
 # parents: all
 braces-no-dot-modifier:
 	: ${MAKE:T}
@@ -70,7 +70,7 @@ braces-no-dot-modifier:
 # parentheses-dot, made, type OP_DEPENDS|OP_SUBMAKE|OP_HAS_COMMANDS|OP_DEPS_FOUND|OP_MARK, flags REMAKE|DONE_WAIT|DONE_ALLSRC|DONE_SUBMAKE
 #
 # No unmade children
-# last modified 20:29:51 Oct 02, 2026: made
+# last modified 01:53:25 Oct 04, 2026: made
 # parents: all
 parentheses-dot :
 	: $(.MAKE)
@@ -79,7 +79,7 @@ parentheses-dot :
 # parentheses-no-dot, made, type OP_DEPENDS|OP_SUBMAKE|OP_HAS_COMMANDS|OP_DEPS_FOUND|OP_MARK, flags REMAKE|DONE_WAIT|DONE_ALLSRC|DONE_SUBMAKE
 #
 # No unmade children
-# last modified 20:29:51 Oct 02, 2026: made
+# last modified 01:53:25 Oct 04, 2026: made
 # parents: all
 parentheses-no-dot:
 	: $(MAKE)
@@ -107,8 +107,8 @@ parentheses-no-dot:
 .MAKE.MAKEFILES  = gnode-submake.mk
 .MAKE.MAKEFILE_PREFERENCE = makefile Makefile
 .MAKE.OS         = Linux
-.MAKE.PID        = 70899
-.MAKE.PPID       = 70898
+.MAKE.PID        = 57530
+.MAKE.PPID       = 57529
 .MAKE.SAVE_DOLLARS = no
 .MAKE.UID        = 1000
 .MAKE.VERSION    = 20260912

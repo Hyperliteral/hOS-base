@@ -1,6 +1,6 @@
 job_pipe -1 -1, maxjobs 1, tokens 1, compat 0
-TokenPool_Take: pid 71497, aborting NONE, running 0
-TokenPool_Take: pid 71497 took a token
+TokenPool_Take: pid 58138, aborting NONE, running 0
+TokenPool_Take: pid 58138 took a token
 MaybeSubMake: Looking for "/home/paul/hOS-base/dep/bmake/bmake"
 echo ": expanded expression"
 { : expanded expression 
@@ -15,13 +15,13 @@ echo ": 'single' and \"double\" quotes"
 } || exit $?
 Running all
 	Command: sh
-JobExec: target all, pid 71498 added to jobs table
+JobExec: target all, pid 58139 added to jobs table
 job started, job table:
-job 0, status running, flags ---, pid 71498
+job 0, status running, flags ---, pid 58139
 : expanded expression
 :  variable
 : 'single' and "double" quotes
-Process with pid 71498 exited/stopped with status 0.
-JobFinish: target all, pid 71498, status 0
-TokenPool_Take: pid 71497, aborting NONE, running 0
-TokenPool_Take: pid 71497 took a token
+Process with pid 58139 exited/stopped with status 0.
+JobFinish: target all, pid 58139, status 0
+TokenPool_Take: pid 58138, aborting NONE, running 0
+TokenPool_Take: pid 58138 took a token

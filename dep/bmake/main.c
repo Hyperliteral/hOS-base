@@ -1062,20 +1062,14 @@ ignore_pwd:
 static void
 InitObjdir(const char *machine, const char *machine_arch)
 {
-	bool writable;
-
-	Dir_InitCur(curdir);
-	writable = GetBooleanExpr("${MAKE_OBJDIR_CHECK_WRITABLE}", true);
-	(void)Main_SetObjdir(false, "%s", curdir);
-
-	if (!SetVarObjdir(writable, "MAKEOBJDIRPREFIX", curdir) &&
-	    !SetVarObjdir(writable, "MAKEOBJDIR", "") &&
-	    !Main_SetObjdir(writable, "%s.%s-%s", _PATH_OBJDIR, machine, machine_arch) &&
-	    !Main_SetObjdir(writable, "%s.%s", _PATH_OBJDIR, machine) &&
-	    !Main_SetObjdir(writable, "%s", _PATH_OBJDIR))
-		(void)Main_SetObjdir(writable, "%s%s", _PATH_OBJDIRPREFIX, curdir);
+	// be more like gnu. wait no fuck gnu!!
+	// we are not bulding BSD. dont go into obj dir
+    Dir_InitCur(curdir);
+    
+    (void)Main_SetObjdir(false, "%s", curdir);
+    
+    /* REMOVED: the entire if() chain that searches for obj/ directories */
 }
-
 /* get rid of resource limit on file descriptors */
 static void
 UnlimitFiles(void)
@@ -1333,6 +1327,11 @@ main_Init(int argc, char **argv)
 	const char *machine_arch;
 	char *syspath = getenv("MAKESYSPATH");
 	struct utsname utsname;
+
+	// annoying error "no system rules (sys.mk)." on new install.
+	// hmake
+	if (syspath == NULL)
+        syspath = "/usr/share/mk";
 
 	/* default to writing debug to stderr */
 	opts.debug_file = stderr;

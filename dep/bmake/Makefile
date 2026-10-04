@@ -1,6 +1,6 @@
 #	$Id: Makefile,v 1.138 2026/07/31 05:01:25 sjg Exp $
 
-PROG = bmake
+PROG = hmake
 
 SRCS = \
 	arch.c \

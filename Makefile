@@ -32,8 +32,11 @@ macho:
 # because it is a different kind of artifact: that one is a static archive
 # holding only the entry stub, this one is a real dylib that executables link
 # against by name and resolve at load time.
-libc:
-	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/libc
+libc-m:
+	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/libc mho
+
+libc-e:
+	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/libc elf
 
 # Userspace startup code and syscall wrappers. Every binary in SOFTWARE_DIRS
 # links against ${LIBDIR}/crt1.o and ${LIBDIR}/libsystem.a, so this has to run

@@ -40,6 +40,7 @@ typedef struct {
   uint64_t entry_offset;
   uint64_t thread_entry;
   uint64_t entry;
+  bool     has_text;
   bool     has_entry_offset;
   bool     has_thread_entry;
   bool     has_entry;
@@ -325,8 +326,14 @@ static bool machoParse(const uint8_t *data, size_t size, MachOImage *image) {
       image->segments[image->segment_count].initprot = segment->initprot;
       image->segment_count++;
       if (machoNameIs(segment->segname, "__TEXT", sizeof("__TEXT") - 1)) {
-        if (image->text_address != 0)
+        // Tracked with an explicit flag rather than by testing text_address
+        // against zero, because a dylib's __TEXT really is linked at zero. Using
+        // the address as its own "was there a __TEXT?" marker rejects every
+        // dylib in existence, and worse, lets a second __TEXT through whenever
+        // the first one happened to be at 0.
+        if (image->has_text)
           goto cleanup;
+        image->has_text = true;
         image->text_address = segment->vmaddr;
         image->text_size = segment->vmsize;
         if (!machoAdd(image->text_address, image->text_size, &text_end))
@@ -465,7 +472,7 @@ static bool machoParse(const uint8_t *data, size_t size, MachOImage *image) {
     cursor += command->cmdsize;
   }
 
-  if (cursor != commands_end || image->text_address == 0)
+  if (cursor != commands_end || !image->has_text)
     goto cleanup;
   // A dylib is never entered. Demanding an entry point from one would reject
   // every library, since LC_MAIN and LC_UNIXTHREAD are both executable-only.
@@ -641,117 +648,63 @@ static bool machoSleb(const uint8_t *data, size_t size, size_t *cursor,
   return true;
 }
 
-static bool machoExportRead(const uint8_t *trie, size_t trie_size, size_t node,
-                            uint64_t *address, uint8_t *kind);
-
-// Walks a dylib's export trie looking for one symbol.
+// ---------------------------------------------------------------------------
+// Export lookup
 //
-// A node is a terminal-size byte, then a ULEB child count, then that many ULEB
-// offsets. Each offset points at a NUL-terminated edge string, and the bytes
-// immediately after that string are the child node.
+// A dylib publishes its symbols twice: as an export trie under
+// LC_DYLD_EXPORTS_TRIE or the export_off/export_size pair of LC_DYLD_INFO, and
+// as an ordinary symbol table under LC_SYMTAB.
 //
-// The descent has to cope with a name that ends partway along an edge rather
-// than on a node boundary - "_f" is a prefix of "_foo" - so each step consumes
-// the whole edge it matched and stops when the name runs out, which may well be
-// in the middle of a node rather than at its start.
-static bool machoExportWalk(const uint8_t *trie, size_t trie_size, size_t node,
-                            const char *name, uint64_t *address,
-                            uint8_t *kind) {
-  while (name[0] != '\0') {
-    if (node >= trie_size)
-      return false;
+// This walks the symbol table rather than the trie, and that is a deliberate
+// choice rather than a shortcut. lld's trie encodes each child edge as a
+// ULEB128 key offset, the NUL-terminated remainder of the name, and then the
+// child node, with the node itself laid out as terminal-size, terminal data,
+// child count, child offsets. Every one of those pieces was confirmed against
+// the real bytes in libc.dylib, but the child offsets could not be shown to
+// address a consistent set of nodes, and shipping a guess at that would mean an
+// export lookup that silently returns the wrong address for some symbols and a
+// correct one for others.
+//
+// The symbol table is fully specified, it carries the same addresses (verified
+// against nm: _printf is 0x1940 through both paths), and the cost is a linear
+// scan per import - 63 entries for libc.dylib, which is not worth optimising
+// before there is a library big enough to notice.
+//
+// Trie support, when it comes, slots in beside this rather than replacing it:
+// for each loaded image, try the trie, then fall back to the symtab.
+// ---------------------------------------------------------------------------
 
-    size_t   cursor = node + 1;
-    uint64_t children = 0;
-    if (!machoUleb(trie, trie_size, &cursor, &children))
-      return false;
+static bool machoExportRead(const uint8_t *data, size_t size,
+                            const MachOSymtabCommand *symtab,
+                            const char *wanted, uint64_t *value) {
+  if (!symtab || symtab->nsyms == 0 || symtab->strsize == 0)
+    return false;
 
-    bool advanced = false;
-    for (uint64_t i = 0; i < children; i++) {
-      uint64_t offset = 0;
-      if (!machoUleb(trie, trie_size, &cursor, &offset))
-        return false;
-      if (offset >= trie_size)
-        return false;
+  uint64_t symbol_bytes = (uint64_t)symtab->nsyms * sizeof(MachONlist64);
+  if (!machoRangeValid(symtab->symoff, symbol_bytes, size))
+    return false;
+  if (!machoRangeValid(symtab->stroff, symtab->strsize, size))
+    return false;
 
-      const char *edge = (const char *)trie + offset;
-      size_t      edge_length = 0;
-      while (offset + edge_length < trie_size && edge[edge_length] != '\0')
-        edge_length++;
-      if (edge_length == 0)
-        continue;
+  const MachONlist64 *symbols = (const MachONlist64 *)(data + symtab->symoff);
+  const char *strings = (const char *)(data + symtab->stroff);
+  size_t wanted_length = strlength((char *)wanted);
 
-      // Skip children that cannot match the next character.
-      if (edge[0] != name[0])
-        continue;
-      size_t take = MIN(edge_length, strlength(name));
-      if (strncmp(edge, name, take) != 0)
-        continue;
-
-      // Descend, consuming the matched part of the name.
-      size_t child = offset + edge_length + 1;
-      if (take < edge_length) {
-        // The wanted name ended inside this edge, so the export, if any, lives
-        // at the node the edge points into.
-        return machoExportRead(trie, trie_size, child, address, kind);
-      }
-      name += take;
-      node = child;
-      advanced = true;
-      break;
-    }
-    if (!advanced)
-      return false;
+  for (uint32_t i = 0; i < symtab->nsyms; i++) {
+    if (symbols[i].n_strx == 0 || symbols[i].n_strx >= symtab->strsize)
+      continue;
+    // Only a symbol that actually lands in a section of this image can be
+    // resolved to an address. N_UNDF entries are this image's own imports,
+    // which is precisely the set that is not yet bound.
+    if ((symbols[i].n_type & N_TYPE) != N_SECT || symbols[i].n_sect == 0)
+      continue;
+    const char *name = strings + symbols[i].n_strx;
+    if (strncmp(name, wanted, wanted_length) != 0 || name[wanted_length] != '\0')
+      continue;
+    *value = symbols[i].n_value;
+    return true;
   }
-
-  // The whole name is consumed and we are sitting on a node. Read its terminal.
-  return machoExportRead(trie, trie_size, node, address, kind);
-}
-
-// Reads the export recorded at one trie node, if there is one.
-static bool machoExportRead(const uint8_t *trie, size_t trie_size, size_t node,
-                            uint64_t *address, uint8_t *kind) {
-  if (node >= trie_size)
-    return false;
-  size_t terminal = trie[node];
-  if (terminal == 0)
-    return false; // a branch node, not an export
-  if (terminal > trie_size - (node + 1))
-    return false;
-
-  const uint8_t *info = trie + node + 1;
-  uint8_t        flags = info[0];
-
-  if (flags & EXPORT_SYMBOL_FLAGS_REEXPORT) {
-    // Another dylib's symbol published under a different name. Resolving one
-    // means walking that dylib's trie under the other name, and nothing here
-    // re-exports, so decline rather than hand back a plausible wrong address.
-    return false;
-  }
-
-  uint8_t found_kind = flags & EXPORT_SYMBOL_FLAGS_KIND_MASK;
-  if (found_kind == EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL)
-    return false;
-
-  size_t   cursor = 1;
-  uint64_t value = 0;
-  if (!machoUleb(info, terminal, &cursor, &value))
-    return false;
-  *address = value;
-  if (kind)
-    *kind = found_kind;
-  return true;
-}
-
-static bool machoExportLookup(const MachOImage *image, const uint8_t *data,
-                              size_t size, const char *wanted,
-                              uint64_t *address, uint8_t *kind) {
-  if (image->export_size == 0)
-    return false;
-  if (!machoRangeValid(image->export_off, image->export_size, size))
-    return false;
-  return machoExportWalk(data + image->export_off, image->export_size, 0,
-                         wanted, address, kind);
+  return false;
 }
 
 // Everything the loader has to consult to resolve one import.
@@ -825,17 +778,15 @@ static bool machoResolveSymbol(const MachOLoaded *all, uint32_t count,
                                const char *name, uint64_t *address) {
   for (uint32_t i = 0; i < count; i++) {
     uint64_t value = 0;
-    uint8_t  kind = EXPORT_SYMBOL_FLAGS_KIND_REGULAR;
-    if (!machoExportLookup(&all[i].image, all[i].data, all[i].size, name,
-                           &value, &kind))
+    if (!machoExportRead(all[i].data, all[i].size,
+                         all[i].image.has_symtab ? &all[i].image.symtab : 0,
+                         name, &value))
       continue;
-    // A regular export is an offset into the image and has to be slid into the
-    // address space it was actually mapped into. An absolute export is a fixed
-    // value - a linker-defined constant - and sliding it would turn it into
-    // nonsense, so it is taken exactly as published.
-    *address = kind == EXPORT_SYMBOL_FLAGS_KIND_ABSOLUTE
-                   ? value
-                   : value + all[i].slide;
+    // A symbol table address is an offset from the start of the image, so it
+    // has to be slid into the space the image was actually mapped into. For an
+    // executable the slide is zero and this is the identity; for a dylib it is
+    // what makes a linked-at-zero library reachable at all.
+    *address = value + all[i].slide;
     return true;
   }
   return false;
@@ -844,6 +795,11 @@ static bool machoResolveSymbol(const MachOLoaded *all, uint32_t count,
 // Rebase opcodes add the slide to pointers the image already contains. This is
 // what makes a dylib safe to put anywhere: every pointer it was linked with
 // still holds the unslid address.
+//
+// DONE means the same thing here as in a bind stream - one run of rebases ends,
+// the region continues - and for the same reason: returning on the first DONE
+// would leave every pointer after it unslid, and a dylib with one wrong pointer
+// in it fails in ways that look nothing like a loader bug.
 //
 // Only BIND_TYPE_POINTER is honoured. The 32-bit absolute and PC-relative text
 // forms would need the text segment's own slide folded in, and nothing here
@@ -867,8 +823,14 @@ static bool machoApplyRebase(const MachOImage *image, const uint8_t *data,
     uint8_t opcode = stream[cursor++];
     uint8_t immediate = opcode & REBASE_IMMEDIATE_MASK;
 
-    if (opcode == REBASE_OPCODE_DONE)
-      break;
+    if (opcode == REBASE_OPCODE_DONE) {
+      // Ends this run of rebases; the region carries on after it. See
+      // machoApplyBinds for why this is not a return.
+      type = BIND_TYPE_POINTER;
+      segment_offset = 0;
+      segment_base = 0;
+      continue;
+    }
 
     switch (opcode & REBASE_OPCODE_MASK) {
     case REBASE_OPCODE_SET_TYPE_IMM:
@@ -965,7 +927,22 @@ static bool machoApplyBinds(const MachOImage *image, const uint8_t *data,
 
     switch (opcode & BIND_OPCODE_MASK) {
     case BIND_OPCODE_DONE:
-      return true;
+      // DONE closes one run of bindings, not the whole stream. lld emits a
+      // separate DONE-terminated run per group of symbols inside a single
+      // bind or lazy-bind region - macho-test's lazy region holds three, for
+      // _printf, _getenv and _exit - so returning here would bind the first
+      // symbol and silently leave the rest holding whatever stub address the
+      // linker put there. The region ending is what ends the walk, and that is
+      // the cursor reaching the end of it.
+      //
+      // Everything a run sets up is dropped, so the next run starts clean and
+      // cannot inherit a stale symbol name or offset.
+      type = BIND_TYPE_POINTER;
+      symbol = 0;
+      segment_offset = 0;
+      segment_base = 0;
+      addend = 0;
+      break;
     case BIND_OPCODE_SET_DYLIB_ORDINAL_IMM:
     case BIND_OPCODE_SET_DYLIB_SPECIAL_IMM:
       // Single-image lookup: the ordinal says which dylib should provide the
@@ -1067,6 +1044,83 @@ static bool machoApplyBinds(const MachOImage *image, const uint8_t *data,
 // the only moving address in the system.
 #define MACHO_DYLIB_BASE 0x400000000ULL
 
+// Where an image ends up once it is mapped, given the slide it was placed at.
+//
+// Uses the recorded segment ranges rather than __TEXT alone: __TEXT is not the
+// whole image. libc.dylib's __TEXT is 0..0x3000 but __DATA follows it to 0x4000,
+// and it is __DATA that holds the symbols. Placing the next image off the end of
+// __TEXT alone would drop it straight into the middle of the previous one.
+static bool machoImageSpan(const MachOImage *image, uint64_t slide,
+                           uint64_t *end) {
+  uint64_t highest = 0;
+  for (uint32_t i = 0; i < image->range_count; i++) {
+    uint64_t candidate = 0;
+    if (!machoAdd(image->ranges[i].end, slide, &candidate))
+      return false;
+    if (candidate > highest)
+      highest = candidate;
+  }
+  if (highest == 0)
+    return false;
+  *end = highest;
+  return true;
+}
+
+// Checks that where an image is about to go does not collide with anything
+// already loaded.
+//
+// This is the check that would have caught the dylib being mapped on top of the
+// executable's __DATA at the point it went wrong. Mapping a second image over a
+// first one does not fail - both maps succeed, the second copy of the bytes wins,
+// and the damage only shows up as a fault at some unrelated address much later -
+// so the placement is verified before mapping rather than trusted.
+static bool machoPlacementClear(const MachOLoaded *all, uint32_t count,
+                                const MachOImage *image, uint64_t slide) {
+  for (uint32_t i = 0; i < image->range_count; i++) {
+    uint64_t start = 0, end = 0;
+    if (!machoAdd(image->ranges[i].start, slide, &start) ||
+        !machoAdd(image->ranges[i].end, slide, &end))
+      return false;
+    for (uint32_t j = 0; j < count; j++) {
+      for (uint32_t k = 0; k < all[j].image.range_count; k++) {
+        uint64_t other_start = 0, other_end = 0;
+        if (!machoAdd(all[j].image.ranges[k].start, all[j].slide, &other_start) ||
+            !machoAdd(all[j].image.ranges[k].end, all[j].slide, &other_end))
+          return false;
+        if (start < other_end && other_start < end)
+          return false;
+      }
+    }
+  }
+  return true;
+}
+
+// Places the next dylib.
+//
+// Only the dylibs are considered. The executable is not on this ladder: it is
+// mapped at the fixed address it was linked at, and folding it in here put the
+// first library at the end of its __TEXT - which is inside its __DATA - so the
+// library was mapped over the executable's own globals and the two images
+// scribbled on each other. That produced a page fault at a dylib-relative offset
+// counting up from the executable, which reads like a corrupt pointer rather
+// than what it was.
+//
+// Each dylib goes above everything loaded before it, so a set of libraries
+// cannot overlap however large any of them turns out to be.
+static bool machoNextDylibBase(const MachOLoaded *all, uint32_t count,
+                               uint64_t *slide) {
+  uint64_t base = MACHO_DYLIB_BASE;
+  // Entry 0 is the executable; dylibs start at entry 1.
+  for (uint32_t i = 1; i < count; i++) {
+    uint64_t end = 0;
+    if (machoImageSpan(&all[i].image, all[i].slide, &end) && end > base)
+      base = end;
+  }
+  if (!machoAlign(base, slide))
+    return false;
+  return *slide >= MACHO_DYLIB_BASE;
+}
+
 // Loads one dylib: reads it, maps it at the next free base, loads anything it
 // itself needs, then rebases and binds it.
 //
@@ -1103,30 +1157,44 @@ static bool machoLoadDylib(char *path, MachOLoaded *all, uint32_t *count,
   loaded.size = size;
   loaded.data_pages = pages;
 
-  if (!machoParse(data, size, &loaded.image) ||
-      loaded.image.filetype != MH_DYLIB) {
-    debugf("[macho] %s is not a loadable dylib\n", path);
+  if (!machoParse(data, size, &loaded.image)) {
+    debugf("[macho] %s is not a valid Mach-O image\n", path);
+    machoLoadedRelease(&loaded);
+    return false;
+  }
+  if (loaded.image.filetype != MH_DYLIB) {
+    // Named separately from a parse failure, because "wrong filetype" and
+    // "malformed" have completely different causes and a single message for
+    // both makes this impossible to diagnose from a boot log.
+    debugf("[macho] %s is filetype %u, not MH_DYLIB (%u)\n", path,
+           loaded.image.filetype, MH_DYLIB);
     machoLoadedRelease(&loaded);
     return false;
   }
   debugf("[macho] loading dylib %s\n", path);
 
-  // Take the next slot above whatever the previously loaded dylib actually
-  // spanned, so images never overlap however large they turn out to be.
   uint64_t slide = MACHO_DYLIB_BASE;
-  for (uint32_t i = 0; i < *count; i++)
-    slide = all[i].slide + all[i].image.text_address + all[i].image.text_size;
-  if (!machoAlign(slide, &slide))
-    slide = MACHO_DYLIB_BASE;
+  if (!machoNextDylibBase(all, *count, &slide)) {
+    debugf("[macho] no room for %s\n", path);
+    machoLoadedRelease(&loaded);
+    return false;
+  }
   loaded.slide = slide;
 
-  uint64_t *old_pagedir = GetPageDirectory();
-  uint64_t *pagedir = PageDirectoryAllocate();
-  ChangePageDirectory(pagedir);
-  bool mapped = machoMapImage(data, slide);
-  ChangePageDirectory(old_pagedir);
-  if (!mapped) {
-    PageDirectoryFree(pagedir);
+  if (!machoPlacementClear(all, *count, &loaded.image, slide)) {
+    debugf("[macho] %s at 0x%lx would overlap an image already loaded\n", path,
+           (unsigned long)slide);
+    machoLoadedRelease(&loaded);
+    return false;
+  }
+
+  // Mapped into the page directory that is already current, which is the one
+  // machoExecute switched to and the one the task will be given. Giving the dylib
+  // its own page directory here mapped the library into a directory that was then
+  // handed straight back: the imports bound to addresses that looked perfect, and
+  // the first touch of any of them faulted as not-present. One process, one page
+  // directory, every image in it.
+  if (!machoMapImage(data, slide)) {
     machoLoadedRelease(&loaded);
     return false;
   }
@@ -1261,7 +1329,10 @@ Task *machoExecute(char *filepath, uint32_t argc, char **argv, uint32_t envc,
   ChangePageDirectory(old_pagedir);
 
   // The mapped pages own the code now, so the on-disk bytes are only needed for
-  // export tries, which is all that just got used.
+  // the symbol tables, which is all that just got used. The entry point has to
+  // come out first: machoLoadedRelease zeroes the struct it is read from.
+  uint64_t entry = loaded[0].image.entry;
+  uint32_t dylib_count = loaded_count - 1;
   for (uint32_t i = 0; i < loaded_count; i++)
     machoLoadedRelease(&loaded[i]);
 
@@ -1270,8 +1341,8 @@ Task *machoExecute(char *filepath, uint32_t argc, char **argv, uint32_t envc,
     debugf("[macho] Could not map executable %s\n", filepath);
     return 0;
   }
-  debugf("[macho] mapped executable, %u dylib(s) linked\n", loaded_count - 1);
-  uint64_t entry = loaded[0].image.entry;
+  debugf("[macho] mapped executable, entry 0x%lx, %u dylib(s) linked\n",
+         (unsigned long)entry, dylib_count);
 
   uint64_t id = taskGenerateId();
   Task     *target = taskCreate((uint32_t)id, entry, false, pagedir, argc,

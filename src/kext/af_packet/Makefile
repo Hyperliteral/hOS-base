@@ -4,7 +4,7 @@ SYSROOT = ${TOPDIR}/target
 TRIPLE = x86_64-unknown-elf
 MODULE = af_packet.ko
 OUTPUT = module.ko
-TARGET = ${SYSROOT}/boot/
+TARGET = ${SYSROOT}/boot
 
 CFLAGS = -std=c17 -Wall -Wextra \
          -nostdlib -fno-builtin -ffreestanding \
@@ -26,8 +26,8 @@ compile:
 
 install:
 	mkdir -p ${TARGET}
-	sudo cp ${OUTPUT} ${TARGET}${MODULE}
-	sudo chown root:root ${TARGET}${MODULE}
+	sudo cp ${OUTPUT} ${TARGET}/${MODULE}
+	sudo chown root:root ${TARGET}/${MODULE}
 
 clean:
 	rm -f ${OUTPUT}

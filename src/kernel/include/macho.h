@@ -47,9 +47,9 @@
 #define VM_PROT_WRITE 0x2
 #define VM_PROT_EXECUTE 0x4
 
-// Export trie, as emitted into LC_DYLD_EXPORTS_TRIE or into the export_off /
-// export_size pair of LC_DYLD_INFO(_ONLY). A dylib has no symbol table the
-// loader is meant to walk for exports; this is the index it publishes instead.
+// Export lookup currently goes through LC_SYMTAB rather than the export trie;
+// see machoExportRead in core/util/macho.c for why, and for what trie support
+// would have to do. These constants are what it will need when it lands.
 #define EXPORT_SYMBOL_FLAGS_KIND_MASK 0x03U
 #define EXPORT_SYMBOL_FLAGS_KIND_REGULAR 0x00U
 #define EXPORT_SYMBOL_FLAGS_KIND_THREAD_LOCAL 0x01U

@@ -24,8 +24,8 @@
 .MAKE.MAKEFILES  = deptgt-suffixes.mk
 .MAKE.MAKEFILE_PREFERENCE = makefile Makefile
 .MAKE.OS         = Linux
-.MAKE.PID        = 70023
-.MAKE.PPID       = 70022
+.MAKE.PID        = 56667
+.MAKE.PPID       = 56666
 .MAKE.SAVE_DOLLARS = no
 .MAKE.UID        = 1000
 .MAKE.VERSION    = 20260912
