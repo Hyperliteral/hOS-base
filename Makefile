@@ -32,6 +32,10 @@ macho:
 # because it is a different kind of artifact: that one is a static archive
 # holding only the entry stub, this one is a real dylib that executables link
 # against by name and resolve at load time.
+# `libc` builds both halves (Mach-O dylib + ELF .so); libc-m/libc-e build one.
+libc:
+	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/libc
+
 libc-m:
 	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/libc mho
 

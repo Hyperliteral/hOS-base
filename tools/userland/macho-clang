@@ -7,8 +7,13 @@ COMPILER=${MACHO_CLANG:-clang}
 STARTUP="$ROOT/src/libs/macho/libmacho.a"
 LIBC="$ROOT/src/libs/libc/libc.dylib"
 LIBC_DIR="$ROOT/src/libs/libc"
+# Headers live in $LIBC_DIR/include since the libc restructure (musl-compatible
+# tree); $LIBC_DIR itself only holds the Makefile and build outputs now.
+# gnu17, not c17: musl's <features.h> only enables the default BSD/POSIX API
+# (strdup, strnlen, ...) when __STRICT_ANSI__ is unset.
+LIBC_INC="$LIBC_DIR/include"
 
-COMMON_FLAGS="--target=x86_64-apple-darwin -fuse-ld=lld -std=c17 -ffreestanding -fno-builtin -fno-stack-protector -fno-pic -fno-pie -fno-omit-frame-pointer -fno-lto -nostdlib -nostartfiles -isystem $LIBC_DIR -isystem $ROOT/target/usr/include -Wl,-arch,x86_64 -Wl,-platform_version,macos,10.4,10.4 -Wl,-no_pie -Wl,-e,__start"
+COMMON_FLAGS="--target=x86_64-apple-darwin -fuse-ld=lld -std=gnu17 -D_GNU_SOURCE -ffreestanding -fno-builtin -fno-stack-protector -fno-pic -fno-pie -fno-omit-frame-pointer -fno-lto -nostdlib -nostartfiles -isystem $LIBC_INC -isystem $ROOT/target/usr/include -Wl,-arch,x86_64 -Wl,-platform_version,macos,10.4,10.4 -Wl,-no_pie -Wl,-e,__start"
 LINK_ONLY=0
 USE_LIBC=1
 

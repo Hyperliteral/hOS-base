@@ -16,6 +16,11 @@
 
 extern int main(int, char **);
 
+// Second environment cell exported by libc.dylib. musl models environ as an
+// alias of __environ; Mach-O cannot express aliases, so libc holds two cells
+// and this stub - the single writer - stores envp into both. See environ.c.
+extern char **__environ;
+
 __attribute__((naked, noreturn)) void _start(void) {
   __asm__ __volatile__("movq %rsp, %rdi\n\t"
                    "andq $-16, %rsp\n\t"
@@ -30,6 +35,7 @@ __attribute__((noreturn)) void mh_start(uint64_t stack) {
   char    **envp = argv + argc + 1;
 
   environ = envp;
+  __environ = envp;
   int result = main(argc, argv);
   exit(result);
 }

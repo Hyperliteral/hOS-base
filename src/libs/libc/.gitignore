@@ -1,1 +1,4 @@
-obj
+obj/
+libc.dylib
+libc.so
+*.exports

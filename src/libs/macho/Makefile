@@ -20,11 +20,14 @@ LIB_OUTPUT = libmacho.a
 # entry point: the kernel jumps to LC_MAIN's offset in the executable itself.
 RUNTIME_OBJS = crt0.o
 
-CFLAGS = --target=${TARGET_TRIPLE} -std=gnu17 -ffreestanding -fno-builtin -fno-stack-protector -fno-pic -fno-pie -fno-omit-frame-pointer -fno-lto -nostdlib -Wall -Wextra -Werror -c
+CFLAGS = --target=${TARGET_TRIPLE} -std=gnu17 -D_GNU_SOURCE -ffreestanding -fno-builtin -fno-stack-protector -fno-pic -fno-pie -fno-omit-frame-pointer -fno-lto -nostdlib -Wall -Wextra -Werror -c \
+         -Wno-bitwise-op-parentheses -Wno-shift-op-parentheses
+# -D_GNU_SOURCE exposes the musl declarations crt0 needs (environ); the two
+# -Wno flags mirror src/libs/libc (musl's endian.h under -Wextra).
 
 # The libc declarations crt0 needs. They resolve against libc.dylib at load
 # time, so crt0 deliberately does not link any of them itself.
-INCLUDES = -I${TOPDIR}/src/libs/libc
+INCLUDES = -I${TOPDIR}/src/libs/libc/include
 
 .PHONY: all compile install clean
 
