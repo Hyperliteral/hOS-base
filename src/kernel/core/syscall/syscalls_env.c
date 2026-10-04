@@ -191,9 +191,22 @@ static size_t syscallGetpgid() { return currentTask->pgid; }
 #define SYSCALL_PRCTL 158
 static size_t syscallPrctl(int code, size_t addr) {
   switch (code) {
-  case 0x1002:
+  case 0x1001: // ARCH_SET_GS
+    currentTask->gsbase = addr;
+    wrmsr(MSRID_GSBASE, currentTask->gsbase);
+    return 0;
+    break;
+  case 0x1002: // ARCH_SET_FS
     currentTask->fsbase = addr;
     wrmsr(MSRID_FSBASE, currentTask->fsbase);
+    return 0;
+    break;
+  case 0x1003: // ARCH_GET_FS
+    *(uint64_t *)addr = currentTask->fsbase;
+    return 0;
+    break;
+  case 0x1004: // ARCH_GET_GS
+    *(uint64_t *)addr = currentTask->gsbase;
     return 0;
     break;
   }

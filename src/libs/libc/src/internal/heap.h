@@ -32,6 +32,12 @@ void            __cavos_heap_split(CavosHeapBlock *block, size_t size);
 void           *__cavos_heap_expand(size_t total);
 size_t          __cavos_heap_align_up(size_t value, size_t alignment);
 
+// Freelist lock: short spin around list ops (malloc/free/realloc). Leaf-level
+// only - realloc delegates to the locking malloc/free instead of holding it,
+// so no path nests. sbrk/brk take it too, since they move the same extent.
+void __cavos_heap_lock(void);
+void __cavos_heap_unlock(void);
+
 #define CAVOS_HEAP_ALIGNMENT 16
 #define CAVOS_HEAP_MAGIC     0x4d41434fU
 

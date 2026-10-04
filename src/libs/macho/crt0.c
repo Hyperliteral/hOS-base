@@ -21,6 +21,11 @@ extern int main(int, char **);
 // and this stub - the single writer - stores envp into both. See environ.c.
 extern char **__environ;
 
+// libc.dylib: installs the main thread's TCB (%fs base, stack canary).
+// No TLS image exists on this path - the toolchain cannot compile __thread
+// for x86_64-apple-darwin - so pthread keys/TSD are the thread-local story.
+extern void __cavos_setup_tls(void);
+
 __attribute__((naked, noreturn)) void _start(void) {
   __asm__ __volatile__("movq %rsp, %rdi\n\t"
                    "andq $-16, %rsp\n\t"
@@ -36,6 +41,7 @@ __attribute__((noreturn)) void mh_start(uint64_t stack) {
 
   environ = envp;
   __environ = envp;
+  __cavos_setup_tls();
   int result = main(argc, argv);
   exit(result);
 }

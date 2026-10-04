@@ -16,13 +16,23 @@ static uintptr_t      heap_base;
 static uintptr_t      heap_break;
 static CavosHeapBlock *heap_first;
 static int             heap_ready;
+static volatile int    heap_spin;
+
+void __cavos_heap_lock(void) {
+  while (__atomic_exchange_n(&heap_spin, 1, __ATOMIC_ACQUIRE))
+    __asm__ __volatile__("pause");
+}
+
+void __cavos_heap_unlock(void) {
+  __atomic_store_n(&heap_spin, 0, __ATOMIC_RELEASE);
+}
 
 void __cavos_heap_init(void) {
   if (heap_ready)
     return;
   long current = __syscall1(SYS_brk, 0);
   if (current <= 0) {
-    *__errno_location() = 12; // ENOMEM
+    *__errno_location() = ENOMEM;
     return;
   }
   heap_base = (uintptr_t)current;
@@ -45,13 +55,13 @@ void *__cavos_heap_grow(size_t increment) {
   if (!heap_ready)
     return 0;
   if (increment > UINTPTR_MAX - heap_break) {
-    *__errno_location() = 12; // ENOMEM
+    *__errno_location() = ENOMEM;
     return 0;
   }
   uintptr_t start = heap_break;
   uintptr_t end = start + increment;
   if (__syscall1(SYS_brk, (long)end) != (long)end) {
-    *__errno_location() = 12; // ENOMEM
+    *__errno_location() = ENOMEM;
     return 0;
   }
   heap_break = end;
@@ -71,12 +81,13 @@ void __cavos_heap_split(CavosHeapBlock *block, size_t size) {
   if (size > block->size ||
       block->size - size < sizeof(CavosHeapBlock) + CAVOS_HEAP_ALIGNMENT)
     return;
-  size_t remainder_size = block->size - size - sizeof(CavosHeapBlock);
-  if (remainder_size < CAVOS_HEAP_ALIGNMENT)
-    return;
+  // Remainder payload: total minus what the caller keeps minus one header.
+  // (This used to subtract the header twice, which underflowed to gigabytes
+  // for small remainders and fabricated blocks past the heap - found by the
+  // malloc stress test.)
   CavosHeapBlock *remainder =
       (CavosHeapBlock *)((uint8_t *)block + sizeof(CavosHeapBlock) + size);
-  remainder->size = remainder_size - sizeof(CavosHeapBlock);
+  remainder->size = block->size - size - sizeof(CavosHeapBlock);
   remainder->next = block->next;
   remainder->magic = CAVOS_HEAP_MAGIC;
   remainder->free = 1;

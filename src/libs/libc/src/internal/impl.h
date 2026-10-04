@@ -19,4 +19,9 @@ void *__memrchr(const void *m, int c, size_t n);
 char *__stpcpy(char *restrict d, const char *restrict s);
 char *__stpncpy(char *restrict d, const char *restrict s, size_t n);
 
+// Sorting engine shared by qsort/qsort_r (defined in src/stdlib/qsort.c,
+// vendored from musl). Declared here instead of musl's private headers.
+void __qsort_r(void *base, size_t nel, size_t width,
+               int (*cmp)(const void *, const void *, void *), void *arg);
+
 #endif

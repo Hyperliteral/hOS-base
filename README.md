@@ -1,24 +1,13 @@
-# Cave-Like Operating System
-cavOS is an x86_64 POSIX-compliant operating system in C. An active effort of making a full OS, with a simple and readable codebase.
+hOS is an x86_64 POSIX-compliant operating system in C. An active effort of making a full OS, with a simple and readable codebase.
+
+Note on POSIX Compliance: it follows the Posix.1-2008 standard (IEEE Std 1003.1-2008)
+reference: https://pubs.opengroup.org/onlinepubs/9699919799.orig/
 
 [![GitHub top language](https://img.shields.io/github/languages/top/malwarepad/cavOS?logo=c&label=)](https://github.com/malwarepad/cavOS/blob/master/src/kernel/Makefile)
 [![GitHub license](https://img.shields.io/github/license/malwarepad/cavOS)](https://github.com/malwarepad/cavOS/blob/master/LICENSE)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/e78ad48f394f46d1bb98f1942c7e1f21)]()
 [![GitHub contributors](https://img.shields.io/github/contributors/malwarepad/cavOS)](https://github.com/malwarepad/cavOS/graphs/contributors)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/malwarepad/cavOS)](https://github.com/malwarepad/cavOS/commits)
-
-## Previews of the OS
-| Terminal and Xorg utilities                                                                           | Image viewer and a mesa demo                                                                          |
-| ----------------------------------------------------------------- | ----------------------------------------------------------------- |
-| ![preview4](https://raw.malwarepad.com/cavos/images/preview4.png) | ![preview5](https://raw.malwarepad.com/cavos/images/preview5.png) |
-
-| Thunar and MPV playing Bad Apple                                                                  | The games Quake Doom and ClassiCraft                                                          |
-| ----------------------------------------------------------------- | ----------------------------------------------------------------- |
-| ![preview8](https://raw.malwarepad.com/cavos/images/preview8.png) | ![preview7](https://raw.malwarepad.com/cavos/images/preview7.png) |
-
-| Wikipedia on NetSurf Browser                                                                          | HexChat on Liberta IRC (encrypted w/TLS)                                                   |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------ |
-| ![preview6](https://raw.malwarepad.com/cavos/images/preview6.png) | ![preview9)](https://raw.malwarepad.com/cavos/images/preview9.png) |
 
 
 ## Why make your own OS in [insert year]?

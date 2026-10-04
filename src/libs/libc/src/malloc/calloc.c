@@ -6,7 +6,7 @@
 
 void *calloc(size_t count, size_t size) {
   if (size != 0 && count > SIZE_MAX / size) {
-    *__errno_location() = 12; // ENOMEM
+    *__errno_location() = ENOMEM;
     return 0;
   }
   size_t total = count * size;
