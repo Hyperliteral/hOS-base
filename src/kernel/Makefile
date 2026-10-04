@@ -62,10 +62,6 @@ disk_dirty: all
 vmware:
 	qemu-img convert ${TARGET_IMG} -O vmdk ${TARGET_VMWARE}
 
-tools:
-	chmod +x ${TOOLS}/toolchain/get_tools.sh
-	${TOOLS}/toolchain/get_tools.sh
-
 clean:
 	${.MAKE} -C core clean
 	${.MAKE} -C services clean

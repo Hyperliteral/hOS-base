@@ -8,7 +8,7 @@ TARGET_TRIPLE_ELF = x86_64-unknown-elf
 
 # Anchor to TOPDIR
 TOPDIR ?= ${.CURDIR}/../..
-SYSROOT = ${TOPDIR}/target
+SYSROOT = ../../../target
 LIBDIR = ${SYSROOT}/lib
 INCLUDEDIR = ${SYSROOT}/usr/include
 
