@@ -5,29 +5,34 @@ TOPDIR ?= ${.CURDIR}
 
 all: disk
 
-.PHONY: disk clean qemu qemu_dbg vmware dev kernel musl remusl cleanmusl limine ports macho libc system config
+.PHONY: disk tools clean qemu qemu_dbg vmware dev kernel musl remusl cleanmusl limine ports macho libc system config
 
 config:
 	python3 tools/config/configure.py
 
-# hlibc
-relibc: cleanlibc libc
+# Musl libc
+remusl: cleanmusl musl
 
 SOFTWARE_DIRS != find src/software -mindepth 2 -maxdepth 2 -name Makefile 2>/dev/null || true
 SOFTWARE_DIRS := ${SOFTWARE_DIRS:H}
 
+cleanmusl:
+	rm -rf src/libs/musl/cavos-build
+	rm -rf src/libs/musl/cavos-out/include
+	rm -rf src/libs/musl/cavos-out/lib
+
+musl:
+	chmod +x src/libs/musl/build.sh
+	./src/libs/musl/build.sh --noreplace
+
 macho:
 	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/macho
 
-
-
-libc-setup:
-	chmod +x src/libs/libc.sh
-	./src/libs/libc.sh
-
-cleanlibc:
-	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/libc clean
-
+# libc.dylib, the Mach-O C library. Kept separate from the "macho" target above
+# because it is a different kind of artifact: that one is a static archive
+# holding only the entry stub, this one is a real dylib that executables link
+# against by name and resolve at load time.
+# `libc` builds both halves (Mach-O dylib + ELF .so); libc-m/libc-e build one.
 libc:
 	@${.MAKE} CURDIR=${CURDIR} TOPDIR=${TOPDIR} -C src/libs/libc
 
